@@ -3,6 +3,15 @@ grammar Nottscript;
 add: NUMBER '+' add
     | NUMBER
     ;
+sub: NUMBER '-' sub
+    | NUMBER
+    ;
+div: NUMBER '/' div
+     | NUMBER
+     ;
+mul: NUMBER '*' mul
+    | NUMBER
+    ;
 
 //Lexer rules
 NUMBER: [0-9]+;
