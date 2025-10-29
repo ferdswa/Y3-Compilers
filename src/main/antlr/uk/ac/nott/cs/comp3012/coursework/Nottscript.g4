@@ -1,6 +1,7 @@
 grammar Nottscript;
 //Parser rules
 progStmt: PROGRAM NAME;
+endProgStmt: END PROGRAM NAME?;
 //Lexer rules
 //Keywords
 ALLOCATE: 'allocate';
@@ -47,8 +48,8 @@ EQ: '=='
     | '.eq.';
 NEQ: '/='
     | '.neq.';
-OR: '.OR.';
-AND: '.AND.';
+OR: '.or.';
+AND: '.and.';
 //OTHER THINGS
 ASSIGN: '=';
 COLON: ':';
