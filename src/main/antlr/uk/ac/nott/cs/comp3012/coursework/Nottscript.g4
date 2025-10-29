@@ -1,6 +1,6 @@
 grammar Nottscript;
 //Parser rules
-
+progStmt: PROGRAM NAME;
 //Lexer rules
 //Keywords
 ALLOCATE: 'allocate';
@@ -54,7 +54,7 @@ ASSIGN: '=';
 COLON: ':';
 DBLCOL: '::';
 COMMA: ',';
-NAME:LETTER+(ALPHANUM|USCORE)+;
+NAME:LETTER+(ALPHANUM|USCORE)*;
 STRING: '"'(CHAR|'""')*'"';
 TRUE: '.true.';
 FALSE: '.false.';
@@ -66,6 +66,7 @@ REALNUM: SIGN?DIGIT*'.'DIGIT*;
 COMMENT: SPACES*'!'[\t -~]*[\r\n] -> skip;//whitespace ignored pre comment
 WHITESPACE: (SPACES|NEWLINE)+ -> skip;//Skip all whitespaces
 NEWLINE: [\r\n]+;
+//Fragments
 fragment ALPHANUM: DIGIT|LETTER;
 fragment USCORE: '_';
 fragment SIGN: ('+'|'-');
