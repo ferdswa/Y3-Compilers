@@ -2,8 +2,29 @@ grammar Nottscript;
 //Parser rules
 
 //Lexer rules
-
-
+//Keywords
+ALLOCATE: 'allocate';
+BREAK: 'break';
+CALL: 'call';
+CHARACTER: 'character';
+DEALLOCATE: 'deallocate';
+DO: 'do';
+ELSE: 'else';
+END: 'end';
+FUNCTION: 'function';
+IF: 'if';
+INTEGER: 'integer';
+LOGICAL: 'logical';
+POINTER: 'pointer';
+PROGRAM: 'program';
+READ: 'read';
+REAL: 'real';
+RESULT: 'result';
+SUBROUTINE: 'subroutine';
+THEN: 'then';
+TYPE: 'type';
+WHILE: 'while';
+WRITE: 'write';
 //Operators
 RIGHTBRACKET: ')';
 LEFTBRACKET: '(';
