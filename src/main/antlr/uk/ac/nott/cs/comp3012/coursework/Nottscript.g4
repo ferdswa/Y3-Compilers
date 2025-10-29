@@ -30,10 +30,10 @@ NEQ: '/='
 //OTHER THINGS
 ASSIGN: '=';
 COLON: ':';
+DBLCOL: '::';
 COMMA: ',';
 NAME:LETTER+(ALPHANUM|USCORE)+;
-STRING: '"'(CHAR|'""')*'"'
-    |'""';//character type
+STRING: '"'(CHAR|'""')*'"';
 TRUE: '.true.';
 FALSE: '.false.';
 BINNUM: [b]'"'BINDIG+'"';
