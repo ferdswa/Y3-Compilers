@@ -60,9 +60,12 @@ FALSE: '.false.';
 BINNUM: [b]'"'BINDIG+'"';
 OCTNUM: [o]'"'OCTDIG+'"';
 HEXNUM: [z]'"'HEXDIG+'"';
+INTNUM: SIGN?DIGIT+;
+REALNUM: SIGN?DIGIT*'.'DIGIT*;
 COMMENT: SPACES*'!'[\t -~]*[\r\n] -> skip;//whitespace ignored pre comment
+WHITESPACE: (SPACES|NEWLINE)+ -> skip;//Skip all whitespaces
 NEWLINE: [\r\n]+;
-ALPHANUM: DIGIT|LETTER;
+fragment ALPHANUM: DIGIT|LETTER;
 fragment USCORE: '_';
 fragment SIGN: ('+'|'-');
 fragment HEXDIG: [0-9a-f];
