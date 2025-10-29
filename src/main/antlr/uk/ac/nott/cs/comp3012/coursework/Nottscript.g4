@@ -28,6 +28,8 @@ WRITE: 'write';
 //Operators
 RIGHTBRACKET: ')';
 LEFTBRACKET: '(';
+MODULO: '%';
+POW: '**';
 DIV: '/';
 MUL: '*';
 PLUS: '+';
