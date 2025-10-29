@@ -28,14 +28,11 @@ WRITE: 'write';
 //Operators
 RIGHTBRACKET: ')';
 LEFTBRACKET: '(';
-PLUS: '+';
-MINUS: '-';
 DIV: '/';
 MUL: '*';
-OR: '.OR.';
-AND: '.AND.';
+PLUS: '+';
+MINUS: '-';
 CONCAT: '//';
-//Relational
 LT: '<'
     | '.lt.';
 GT: '>'
@@ -48,6 +45,8 @@ EQ: '=='
     | '.eq.';
 NEQ: '/='
     | '.neq.';
+OR: '.OR.';
+AND: '.AND.';
 //OTHER THINGS
 ASSIGN: '=';
 COLON: ':';
