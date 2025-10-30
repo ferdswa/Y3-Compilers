@@ -1,6 +1,7 @@
 grammar Nottscript;
 //Parser rules
-
+progStmt: PROGRAM NAME;
+endProgStmt: END PROGRAM NAME?;
 //Lexer rules
 //Keywords
 ALLOCATE: 'allocate';
@@ -28,14 +29,13 @@ WRITE: 'write';
 //Operators
 RIGHTBRACKET: ')';
 LEFTBRACKET: '(';
-PLUS: '+';
-MINUS: '-';
+MODULO: '%';
+POW: '**';
 DIV: '/';
 MUL: '*';
-OR: '.OR.';
-AND: '.AND.';
+PLUS: '+';
+MINUS: '-';
 CONCAT: '//';
-//Relational
 LT: '<'
     | '.lt.';
 GT: '>'
@@ -48,12 +48,14 @@ EQ: '=='
     | '.eq.';
 NEQ: '/='
     | '.neq.';
+OR: '.or.';
+AND: '.and.';
 //OTHER THINGS
 ASSIGN: '=';
 COLON: ':';
 DBLCOL: '::';
 COMMA: ',';
-NAME:LETTER+(ALPHANUM|USCORE)+;
+NAME:LETTER+(ALPHANUM|USCORE)*;
 STRING: '"'(CHAR|'""')*'"';
 TRUE: '.true.';
 FALSE: '.false.';
@@ -61,10 +63,12 @@ BINNUM: [b]'"'BINDIG+'"';
 OCTNUM: [o]'"'OCTDIG+'"';
 HEXNUM: [z]'"'HEXDIG+'"';
 INTNUM: SIGN?DIGIT+;
-REALNUM: SIGN?DIGIT*'.'DIGIT*;
+REALNUM: SIGN?DIGIT+'.'DIGIT*//Either not both
+        | SIGN?DIGIT*'.'DIGIT+;
 COMMENT: SPACES*'!'[\t -~]*[\r\n] -> skip;//whitespace ignored pre comment
 WHITESPACE: (SPACES|NEWLINE)+ -> skip;//Skip all whitespaces
 NEWLINE: [\r\n]+;
+//Fragments
 fragment ALPHANUM: DIGIT|LETTER;
 fragment USCORE: '_';
 fragment SIGN: ('+'|'-');
