@@ -73,7 +73,7 @@ HEXNUM: [z]'"'HEXDIG+'"';
 INTNUM: SIGN?DIGIT+;
 REALNUM: SIGN?DIGIT+'.'DIGIT*//Either not both
         | SIGN?DIGIT*'.'DIGIT+;
-COMMENT: SPACES*'!'[\t -~]*NEWLINE -> skip;//whitespace ignored pre comment
+COMMENT: SPACES*'!'[\t -~]*NEWLINE* -> skip;//whitespace ignored pre comment
 WHITESPACE: (SPACES|NEWLINE)+ -> skip;//Skip all whitespaces
 NEWLINE: [\r\n];
 //Fragments
