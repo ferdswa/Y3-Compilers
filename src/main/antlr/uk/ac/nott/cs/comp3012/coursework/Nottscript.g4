@@ -2,6 +2,14 @@ grammar Nottscript;
 //Parser rules
 progStmt: PROGRAM NAME;
 endProgStmt: END PROGRAM NAME?;
+progContent: (codeBody? endProgStmt);
+typeSpec: INTEGER | REAL | CHARACTER | LOGICAL | TYPE LEFTBRACKET NAME RIGHTBRACKET;
+nvList: varN (COMMA varN)*;
+varN: NAME;
+declaration: typeSpec nvList;
+codeBody: ' ';
+
+
 //Lexer rules
 //Keywords
 ALLOCATE: 'allocate';
@@ -65,9 +73,9 @@ HEXNUM: [z]'"'HEXDIG+'"';
 INTNUM: SIGN?DIGIT+;
 REALNUM: SIGN?DIGIT+'.'DIGIT*//Either not both
         | SIGN?DIGIT*'.'DIGIT+;
-COMMENT: SPACES*'!'[\t -~]*[\r\n] -> skip;//whitespace ignored pre comment
+COMMENT: SPACES*'!'[\t -~]*NEWLINE -> skip;//whitespace ignored pre comment
 WHITESPACE: (SPACES|NEWLINE)+ -> skip;//Skip all whitespaces
-NEWLINE: [\r\n]+;
+NEWLINE: [\r\n];
 //Fragments
 fragment ALPHANUM: DIGIT|LETTER;
 fragment USCORE: '_';
@@ -77,5 +85,5 @@ fragment BINDIG: [0-1];
 fragment OCTDIG: [0-7];
 fragment DIGIT: [0-9];
 fragment LETTER: [a-zA-Z];
-fragment SPACES: [\t ]+;
+fragment SPACES: [\t ];
 fragment CHAR: [\t !#-~];
