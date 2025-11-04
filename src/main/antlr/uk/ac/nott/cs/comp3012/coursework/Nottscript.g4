@@ -6,7 +6,7 @@ program: progStmt progContent;
 progContent: codeBodyExt? endProgStmt;
 
 codeBodyExt: (func | subrt | codeBodyInt | declaration)+;
-codeBodyInt: (assignment|customType|call|ifStmt|ifBlock|do|doWhile|read|write)+;
+codeBodyInt: (assignment|customType|call|ifStmt|ifBlock|do|doWhile|read|write|allocPtr|deallocPtr)+;
 
 subrtStmt: SUBROUTINE sN LEFTBRACKET paramN (COMMA paramN)* RIGHTBRACKET;
 endSubrtStmt: END SUBROUTINE sN;
@@ -39,6 +39,10 @@ doWhile: DO WHILE LEFTBRACKET expr0 RIGHTBRACKET codeBodyInt END DO;
 read: READ varN (COMMA varN)*;
 write: WRITE expr0 (COMMA expr0)*;
 
+allocPtr: ALLOCATE ptrName
+        | ALLOCATE ptrName COMMA (USIGNINT|varN);
+deallocPtr: DEALLOCATE ptrName;
+
 //namedAssign: NAME ASSIGN expr0;
 expr0: (TRUE | FALSE | REALNUM | HEXNUM | BINNUM | STRING | intnum);
 customType: TYPE customTypeName declaration+ END TYPE customTypeName;
@@ -50,6 +54,7 @@ index: USIGNINT;
 maxIndex: USIGNINT;
 varN: NAME;
 paramN: NAME;
+ptrName: NAME;
 fN: NAME;
 sN: NAME;
 //Lexer rules
