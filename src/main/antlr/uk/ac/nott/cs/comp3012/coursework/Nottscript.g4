@@ -6,7 +6,7 @@ program: progStmt progContent;
 progContent: codeBodyExt? endProgStmt;
 
 codeBodyExt: (func | subrt | codeBodyInt | declaration)+;
-codeBodyInt: (assignment|customType|call|ifStmt|ifBlock|do|doWhile)+;
+codeBodyInt: (assignment|customType|call|ifStmt|ifBlock|do|doWhile|read|write)+;
 
 subrtStmt: SUBROUTINE sN LEFTBRACKET paramN (COMMA paramN)* RIGHTBRACKET;
 endSubrtStmt: END SUBROUTINE sN;
@@ -36,6 +36,8 @@ do: DO varN ASSIGN intnum COMMA intnum COMMA intnum codeBodyInt END DO
     | DO varN ASSIGN intnum COMMA intnum codeBodyInt END DO;
 doWhile: DO WHILE LEFTBRACKET expr0 RIGHTBRACKET codeBodyInt END DO;
 
+read: READ varN (COMMA varN)*;
+write: WRITE expr0 (COMMA expr0)*;
 
 //namedAssign: NAME ASSIGN expr0;
 expr0: (TRUE | FALSE | REALNUM | HEXNUM | BINNUM | STRING | intnum);
