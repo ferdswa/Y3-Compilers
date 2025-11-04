@@ -6,7 +6,7 @@ program: progStmt progContent;
 progContent: codeBodyExt? endProgStmt;
 
 codeBodyExt: (func | subrt | codeBodyInt | declaration)+;
-codeBodyInt: (assignment|customType)+;
+codeBodyInt: (assignment|customType|call|ifStmt|ifBlock|do|doWhile)+;
 
 subrtStmt: SUBROUTINE sN LEFTBRACKET paramN (COMMA paramN)* RIGHTBRACKET;
 endSubrtStmt: END SUBROUTINE sN;
@@ -24,6 +24,18 @@ array: varN LEFTBRACKET index (COMMA index)* RIGHTBRACKET;
 nvList: varN (COMMA varN)*;
 
 declaration: (typeSpec DBLCOL nvList) | declPtr;
+
+call: CALL sN LEFTBRACKET paramN (COMMA paramN)* RIGHTBRACKET;
+
+ifStmt: IF LEFTBRACKET (TRUE|FALSE) RIGHTBRACKET assignment | IF LEFTBRACKET varN RIGHTBRACKET assignment;
+
+ifBlock: IF LEFTBRACKET expr0 RIGHTBRACKET THEN codeBodyInt END IF|
+         IF LEFTBRACKET expr0 RIGHTBRACKET THEN codeBodyInt elseCond END IF;
+elseCond: ELSE codeBodyInt;
+do: DO varN ASSIGN intnum COMMA intnum COMMA intnum codeBodyInt END DO
+    | DO varN ASSIGN intnum COMMA intnum codeBodyInt END DO;
+doWhile: DO WHILE LEFTBRACKET expr0 RIGHTBRACKET codeBodyInt END DO;
+
 
 //namedAssign: NAME ASSIGN expr0;
 expr0: (TRUE | FALSE | REALNUM | HEXNUM | BINNUM | STRING | intnum);
