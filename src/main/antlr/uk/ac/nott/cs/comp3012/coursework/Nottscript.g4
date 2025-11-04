@@ -2,14 +2,42 @@ grammar Nottscript;
 //Parser rules
 progStmt: PROGRAM NAME;
 endProgStmt: END PROGRAM NAME?;
-progContent: (codeBody? endProgStmt);
-typeSpec: INTEGER | REAL | CHARACTER | LOGICAL | TYPE LEFTBRACKET NAME RIGHTBRACKET;
+program: progStmt progContent;
+progContent: codeBodyExt? endProgStmt;
+
+codeBodyExt: (func | subrt | codeBodyInt | declaration)+;
+codeBodyInt: (assignment|customType)+;
+
+subrtStmt: SUBROUTINE sN LEFTBRACKET paramN (COMMA paramN)* RIGHTBRACKET;
+endSubrtStmt: END SUBROUTINE sN;
+subrt: subrtStmt declaration+ codeBodyInt+ endSubrtStmt;
+
+funcStmt: FUNCTION fN LEFTBRACKET paramN (COMMA paramN)* RIGHTBRACKET
+        | FUNCTION fN LEFTBRACKET paramN (COMMA paramN)* RIGHTBRACKET RESULT LEFTBRACKET paramN RIGHTBRACKET;
+endFuncStmt: END FUNCTION fN;
+func: funcStmt declaration+ codeBodyInt+ endFuncStmt;
+
+declPtr: (INTEGER | REAL | CHARACTER | LOGICAL | TYPE LEFTBRACKET customTypeName RIGHTBRACKET) (LEFTBRACKET '*' (COMMA '*')* RIGHTBRACKET)? POINTER DBLCOL nvList;
+typeSpec: (INTEGER | REAL | CHARACTER | LOGICAL | TYPE LEFTBRACKET customTypeName RIGHTBRACKET) (LEFTBRACKET maxIndex (COMMA maxIndex)* RIGHTBRACKET)?;
+
+array: varN LEFTBRACKET index (COMMA index)* RIGHTBRACKET;
 nvList: varN (COMMA varN)*;
+
+declaration: (typeSpec DBLCOL nvList) | declPtr;
+
+//namedAssign: NAME ASSIGN expr0;
+expr0: (TRUE | FALSE | REALNUM | HEXNUM | BINNUM | STRING | intnum);
+customType: TYPE customTypeName declaration+ END TYPE customTypeName;
+ctField: NAME;
+customTypeName: NAME;
+assignment: varN ASSIGN expr0 | array ASSIGN expr0 | customTypeName '%' ctField ASSIGN expr0 | customTypeName '%' array ASSIGN expr0 ;//statement not expr
+intnum: ('+'|'-')? USIGNINT;
+index: USIGNINT;
+maxIndex: USIGNINT;
 varN: NAME;
-declaration: typeSpec nvList;
-codeBody: ' ';
-
-
+paramN: NAME;
+fN: NAME;
+sN: NAME;
 //Lexer rules
 //Keywords
 ALLOCATE: 'allocate';
@@ -70,7 +98,8 @@ FALSE: '.false.';
 BINNUM: [b]'"'BINDIG+'"';
 OCTNUM: [o]'"'OCTDIG+'"';
 HEXNUM: [z]'"'HEXDIG+'"';
-INTNUM: SIGN?DIGIT+;
+//INTNUM: [+-]?DIGIT+;
+USIGNINT: DIGIT+;
 REALNUM: SIGN?DIGIT+'.'DIGIT*//Either not both
         | SIGN?DIGIT*'.'DIGIT+;
 COMMENT: SPACES*'!'[\t -~]*NEWLINE* -> skip;//whitespace ignored pre comment
