@@ -1,55 +1,77 @@
 grammar Nottscript;
 //Parser rules
+file: (func | subrt )* program (func | subrt )*;
 progStmt: PROGRAM NAME;
 endProgStmt: END PROGRAM NAME?;
 program: progStmt progContent;
-progContent: codeBodyExt? endProgStmt;
+progContent: declaration+ statement+ endProgStmt;
 
-codeBodyExt: (func | subrt | codeBodyInt | declaration)+;
-codeBodyInt: (assignment|customType|call|ifStmt|ifBlock|do|doWhile|read|write|allocPtr|deallocPtr)+;
+statement: assignment
+            | customType
+            | call
+            | ifBlock
+            | ifStmt
+            | do
+            | doWhile
+            | read
+            | write
+            | allocPtr
+            | deallocPtr
+            | funcCall;
 
-subrtStmt: SUBROUTINE sN LEFTBRACKET paramN (COMMA paramN)* RIGHTBRACKET;
+subrtStmt: SUBROUTINE sN LEFTBRACKET nvList? RIGHTBRACKET;
 endSubrtStmt: END SUBROUTINE sN;
-subrt: subrtStmt declaration+ codeBodyInt+ endSubrtStmt;
+subrt: subrtStmt declaration+ statement+ endSubrtStmt;
+call: CALL sN LEFTBRACKET paramList? RIGHTBRACKET;
 
-funcStmt: FUNCTION fN LEFTBRACKET paramN (COMMA paramN)* RIGHTBRACKET
-        | FUNCTION fN LEFTBRACKET paramN (COMMA paramN)* RIGHTBRACKET RESULT LEFTBRACKET paramN RIGHTBRACKET;
+funcStmt: FUNCTION fN LEFTBRACKET nvList? RIGHTBRACKET
+        | FUNCTION fN LEFTBRACKET nvList? RIGHTBRACKET RESULT LEFTBRACKET paramN RIGHTBRACKET;
 endFuncStmt: END FUNCTION fN;
-func: funcStmt declaration+ codeBodyInt+ endFuncStmt;
+func: funcStmt declaration+ statement+ endFuncStmt;
+funcCall: fN LEFTBRACKET paramList? RIGHTBRACKET;
 
 declPtr: (INTEGER | REAL | CHARACTER | LOGICAL | TYPE LEFTBRACKET customTypeName RIGHTBRACKET) (LEFTBRACKET '*' (COMMA '*')* RIGHTBRACKET)? POINTER DBLCOL nvList;
 typeSpec: (INTEGER | REAL | CHARACTER | LOGICAL | TYPE LEFTBRACKET customTypeName RIGHTBRACKET) (LEFTBRACKET maxIndex (COMMA maxIndex)* RIGHTBRACKET)?;
 
-array: varN LEFTBRACKET index (COMMA index)* RIGHTBRACKET;
+array: varN LEFTBRACKET (index|varN) (COMMA (index|varN))* RIGHTBRACKET;
 nvList: varN (COMMA varN)*;
+paramList: (paramN|expr0) (COMMA (paramN|expr0))*;
 
 declaration: (typeSpec DBLCOL nvList) | declPtr;
 
-call: CALL sN LEFTBRACKET paramN (COMMA paramN)* RIGHTBRACKET;
-
 ifStmt: IF LEFTBRACKET (TRUE|FALSE) RIGHTBRACKET assignment | IF LEFTBRACKET varN RIGHTBRACKET assignment;
 
-ifBlock: IF LEFTBRACKET expr0 RIGHTBRACKET THEN codeBodyInt END IF|
-         IF LEFTBRACKET expr0 RIGHTBRACKET THEN codeBodyInt elseCond END IF;
-elseCond: ELSE codeBodyInt;
-do: DO varN ASSIGN intnum COMMA intnum COMMA intnum codeBodyInt END DO
-    | DO varN ASSIGN intnum COMMA intnum codeBodyInt END DO;
-doWhile: DO WHILE LEFTBRACKET expr0 RIGHTBRACKET codeBodyInt END DO;
+ifBlock: IF LEFTBRACKET expr0 RIGHTBRACKET THEN statement+ END IF|
+         IF LEFTBRACKET expr0 RIGHTBRACKET THEN statement+ elseCond END IF;
+elseCond: ELSE statement+;
 
-read: READ varN (COMMA varN)*;
+do: DO varN ASSIGN intnum COMMA intnum COMMA intnum statement+ END DO
+    | DO varN ASSIGN intnum COMMA intnum statement+ END DO;
+doWhile: DO WHILE LEFTBRACKET expr0 RIGHTBRACKET statement+ END DO;
+
+read: READ (varN|array) (COMMA (varN|array))*;
 write: WRITE expr0 (COMMA expr0)*;
 
 allocPtr: ALLOCATE ptrName
         | ALLOCATE ptrName COMMA (USIGNINT|varN);
 deallocPtr: DEALLOCATE ptrName;
 
-//namedAssign: NAME ASSIGN expr0;
-expr0: (TRUE | FALSE | REALNUM | HEXNUM | BINNUM | STRING | intnum);
+//Operators in order
+powExpr: basic (POW basic)*;
+mulDivExpr: powExpr ((MUL|DIV) powExpr)*;
+addSubExpr: (PLUS|MINUS)? mulDivExpr((PLUS|MINUS)mulDivExpr)*;
+concatExpr: addSubExpr(CONCAT addSubExpr)*;
+relExpr: concatExpr(relativeOp concatExpr)*;
+logExpr: relExpr((AND|OR)relExpr)*;
+basic: (TRUE | FALSE | REALNUM | HEXNUM | BINNUM | STRING | intnum |LEFTBRACKET expr0 RIGHTBRACKET| array | funcCall | varN);
+expr0: logExpr;
+
 customType: TYPE customTypeName declaration+ END TYPE customTypeName;
 ctField: NAME;
 customTypeName: NAME;
-assignment: varN ASSIGN expr0 | array ASSIGN expr0 | customTypeName '%' ctField ASSIGN expr0 | customTypeName '%' array ASSIGN expr0 ;//statement not expr
-intnum: ('+'|'-')? USIGNINT;
+assignment: varN ASSIGN expr0 | array ASSIGN expr0 | customTypeName FIELDACCESS ctField ASSIGN expr0 | customTypeName FIELDACCESS array ASSIGN expr0 ;//statement not expr
+relativeOp: LT|GT|EQ|LEQ|GEQ|NEQ;
+intnum: (PLUS|MINUS)? USIGNINT;
 index: USIGNINT;
 maxIndex: USIGNINT;
 varN: NAME;
@@ -84,7 +106,7 @@ WRITE: 'write';
 //Operators
 RIGHTBRACKET: ')';
 LEFTBRACKET: '(';
-MODULO: '%';
+FIELDACCESS: '%';
 POW: '**';
 DIV: '/';
 MUL: '*';
