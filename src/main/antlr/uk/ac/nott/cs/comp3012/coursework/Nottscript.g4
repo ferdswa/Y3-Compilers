@@ -4,7 +4,7 @@ file: (func | subrt )* program (func | subrt )*;
 progStmt: PROGRAM NAME;
 endProgStmt: END PROGRAM NAME?;
 program: progStmt progContent;
-progContent: declaration+ statement+ endProgStmt;
+progContent: declaration* statement* endProgStmt;
 
 statement: assignment
             | customType
@@ -21,13 +21,13 @@ statement: assignment
 
 subrtStmt: SUBROUTINE sN LEFTBRACKET nvList? RIGHTBRACKET;
 endSubrtStmt: END SUBROUTINE sN;
-subrt: subrtStmt declaration+ statement+ endSubrtStmt;
+subrt: subrtStmt declaration* statement* endSubrtStmt;
 call: CALL sN LEFTBRACKET paramList? RIGHTBRACKET;
 
 funcStmt: FUNCTION fN LEFTBRACKET nvList? RIGHTBRACKET
         | FUNCTION fN LEFTBRACKET nvList? RIGHTBRACKET RESULT LEFTBRACKET paramN RIGHTBRACKET;
 endFuncStmt: END FUNCTION fN;
-func: funcStmt declaration+ statement+ endFuncStmt;
+func: funcStmt declaration* statement* endFuncStmt;
 funcCall: fN LEFTBRACKET paramList? RIGHTBRACKET;
 
 declPtr: (INTEGER | REAL | CHARACTER | LOGICAL | TYPE LEFTBRACKET customTypeName RIGHTBRACKET) (LEFTBRACKET '*' (COMMA '*')* RIGHTBRACKET)? POINTER DBLCOL nvList;
@@ -39,14 +39,14 @@ paramList: (paramN|expr0) (COMMA (paramN|expr0))*;
 
 declaration: (typeSpec DBLCOL nvList) | declPtr;
 
-ifStmt: IF LEFTBRACKET (TRUE|FALSE) RIGHTBRACKET assignment | IF LEFTBRACKET varN RIGHTBRACKET assignment;
+ifStmt: IF LEFTBRACKET expr0 RIGHTBRACKET statement;
 
 ifBlock: IF LEFTBRACKET expr0 RIGHTBRACKET THEN statement+ END IF|
          IF LEFTBRACKET expr0 RIGHTBRACKET THEN statement+ elseCond END IF;
 elseCond: ELSE statement+;
 
-do: DO varN ASSIGN intnum COMMA intnum COMMA intnum statement+ END DO
-    | DO varN ASSIGN intnum COMMA intnum statement+ END DO;
+do: DO varN ASSIGN (intnum|varN) COMMA (intnum|varN) COMMA (intnum|varN) statement+ END DO
+    | DO varN ASSIGN (intnum|varN) COMMA (intnum|varN) statement+ END DO;
 doWhile: DO WHILE LEFTBRACKET expr0 RIGHTBRACKET statement+ END DO;
 
 read: READ (varN|array) (COMMA (varN|array))*;
@@ -63,7 +63,7 @@ addSubExpr: (PLUS|MINUS)? mulDivExpr((PLUS|MINUS)mulDivExpr)*;
 concatExpr: addSubExpr(CONCAT addSubExpr)*;
 relExpr: concatExpr(relativeOp concatExpr)*;
 logExpr: relExpr((AND|OR)relExpr)*;
-basic: (TRUE | FALSE | REALNUM | HEXNUM | BINNUM | STRING | intnum |LEFTBRACKET expr0 RIGHTBRACKET| array | funcCall | varN);
+basic: (TRUE | FALSE | REALNUM | HEXNUM | BINNUM | STRING | intnum |LEFTBRACKET expr0 RIGHTBRACKET| array | funcCall | varN);//pointers can be read as arrays
 expr0: logExpr;
 
 customType: TYPE customTypeName declaration+ END TYPE customTypeName;

@@ -80,7 +80,6 @@ public class Compiler {
          */
         Ast runFrontend(String programText);
     }
-
     /**
      * A compiler backend converts IR of a program into bytes of machine code.
      */
