@@ -1,9 +1,9 @@
 grammar Nottscript;
 //Parser rules
-file: (func | subrt )* program (func | subrt )*;
+program: (func | subrt )* progBlock (func | subrt )*;
 progStmt: PROGRAM NAME;
 endProgStmt: END PROGRAM NAME?;
-program: progStmt progContent;
+progBlock: progStmt progContent;
 progContent: declaration* statement* endProgStmt;
 
 statement: assignment
@@ -11,7 +11,7 @@ statement: assignment
             | call
             | ifBlock
             | ifStmt
-            | do
+            | doStmt
             | doWhile
             | read
             | write
@@ -30,14 +30,16 @@ endFuncStmt: END FUNCTION fN;
 func: funcStmt declaration* statement* endFuncStmt;
 funcCall: fN LEFTBRACKET paramList? RIGHTBRACKET;
 
-declPtr: (INTEGER | REAL | CHARACTER | LOGICAL | TYPE LEFTBRACKET customTypeName RIGHTBRACKET) (LEFTBRACKET '*' (COMMA '*')* RIGHTBRACKET)? POINTER DBLCOL nvList;
-typeSpec: (INTEGER | REAL | CHARACTER | LOGICAL | TYPE LEFTBRACKET customTypeName RIGHTBRACKET) (LEFTBRACKET maxIndex (COMMA maxIndex)* RIGHTBRACKET)?;
+declPtr: (INTEGER | REAL | CHARACTER | LOGICAL | TYPE LEFTBRACKET customTypeName RIGHTBRACKET) POINTER DBLCOL nvList;
+declPtrArray: (INTEGER | REAL | CHARACTER | LOGICAL | TYPE LEFTBRACKET customTypeName RIGHTBRACKET) (LEFTBRACKET '*' (COMMA '*')* RIGHTBRACKET) POINTER DBLCOL nvList;
+typeSpec: (INTEGER | REAL | CHARACTER | LOGICAL | TYPE LEFTBRACKET customTypeName RIGHTBRACKET);
+declArray: typeSpec  (LEFTBRACKET maxIndex (COMMA maxIndex)* RIGHTBRACKET)?;
 
 array: varN LEFTBRACKET (index|varN) (COMMA (index|varN))* RIGHTBRACKET;
 nvList: varN (COMMA varN)*;
 paramList: (paramN|expr0) (COMMA (paramN|expr0))*;
 
-declaration: (typeSpec DBLCOL nvList) | declPtr;
+declaration: (typeSpec DBLCOL nvList) | declPtr|declArray|declPtrArray;
 
 ifStmt: IF LEFTBRACKET expr0 RIGHTBRACKET statement;
 
@@ -45,7 +47,7 @@ ifBlock: IF LEFTBRACKET expr0 RIGHTBRACKET THEN statement+ END IF|
          IF LEFTBRACKET expr0 RIGHTBRACKET THEN statement+ elseCond END IF;
 elseCond: ELSE statement+;
 
-do: DO varN ASSIGN (intnum|varN) COMMA (intnum|varN) COMMA (intnum|varN) statement+ END DO
+doStmt: DO varN ASSIGN (intnum|varN) COMMA (intnum|varN) COMMA (intnum|varN) statement+ END DO
     | DO varN ASSIGN (intnum|varN) COMMA (intnum|varN) statement+ END DO;
 doWhile: DO WHILE LEFTBRACKET expr0 RIGHTBRACKET statement+ END DO;
 
