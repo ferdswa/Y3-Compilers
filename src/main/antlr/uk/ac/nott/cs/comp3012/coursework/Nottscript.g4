@@ -1,18 +1,22 @@
 grammar Nottscript;
 //Parser rules
-program: block+ EOF;
+program: (block)+ EOF;
 
-block: PROGRAM nameAtom declaration* statement* END PROGRAM nameAtom? #programBlock
-      | FUNCTION nameAtom LEFTBRACKET (nameAtom (COMMA nameAtom)*)? RIGHTBRACKET declaration* statement* END FUNCTION nameAtom #voidFuncBlock
-      | FUNCTION nameAtom LEFTBRACKET (nameAtom (COMMA nameAtom)*)? RIGHTBRACKET RESULT LEFTBRACKET nameAtom RIGHTBRACKET declaration* statement* END FUNCTION nameAtom #returnFuncBlock
-      | SUBROUTINE nameAtom LEFTBRACKET (nameAtom (COMMA nameAtom)*)? RIGHTBRACKET declaration* statement* END SUBROUTINE nameAtom #subrtBlock;
+block:
+        PROGRAM nameAtom declaration* statement* END PROGRAM nameAtom #programBlock
+      | FUNCTION nameAtom LEFTBRACKET declaratorParamList? RIGHTBRACKET declaration* statement* END FUNCTION nameAtom #voidFuncBlock
+      | FUNCTION nameAtom LEFTBRACKET declaratorParamList? RIGHTBRACKET RESULT LEFTBRACKET nameAtom RIGHTBRACKET declaration* statement* END FUNCTION nameAtom #returnFuncBlock
+      | SUBROUTINE nameAtom LEFTBRACKET declaratorParamList? RIGHTBRACKET declaration* statement* END SUBROUTINE nameAtom #subrtBlock
+      ;
+
+declaratorParamList: nameAtom (COMMA nameAtom)*;
 
 declaration: typeSpec DBLCOL nameAtom (COMMA nameAtom)* #declareVar
             | typeSpec POINTER DBLCOL nameAtom (COMMA nameAtom)* #declPtr
             | typeSpec LEFTBRACKET numAtom (COMMA numAtom)* RIGHTBRACKET DBLCOL nameAtom (COMMA nameAtom)* #declArray
             | typeSpec (LEFTBRACKET '*' (COMMA '*')* RIGHTBRACKET) POINTER DBLCOL nameAtom (COMMA nameAtom)* #declPtrArray;
 
-statement: NAME ASSIGN expr #baseAssign
+statement: nameAtom ASSIGN expr #baseAssign
            | array ASSIGN expr #arrayAssign
            | nameAtom FIELDACCESS nameAtom ASSIGN expr #ctAssign
            | nameAtom FIELDACCESS array ASSIGN expr #ctArrayAssign
@@ -38,11 +42,11 @@ paramList: (nameAtom|expr) (COMMA (nameAtom|expr))*;
 
 //Operators in order
 powExpr: basic (POW basic)*;
-mulDivExpr: powExpr ((MUL|DIV) powExpr)*;
-addSubExpr: mulDivExpr((PLUS|MINUS)mulDivExpr)*;
+mulDivExpr: powExpr (mulDivOp powExpr)*;
+addSubExpr: addSubOp? mulDivExpr(addSubOp mulDivExpr)*;
 concatExpr: addSubExpr(CONCAT addSubExpr)*;
 relExpr: concatExpr(relativeOp concatExpr)*;
-logExpr: relExpr((AND|OR)relExpr)*;
+logExpr: relExpr(logicalOp relExpr)*;
 
 basic: (TRUE|FALSE)  #logicSExpr
        | REALNUM   #realSExpr
@@ -53,12 +57,15 @@ basic: (TRUE|FALSE)  #logicSExpr
        | LEFTBRACKET expr RIGHTBRACKET #exprSExpr
        | array     #arrSExpr //Can be confused for function call and vice versa
        | nameAtom LEFTBRACKET paramList? RIGHTBRACKET #funcSExpr
-       | NAME      #nameSExpr;//pointers can be read as arrays
+       | nameAtom      #nameSExpr;//pointers can be read as arrays
 
 expr: logExpr;
 
 relativeOp: LT|GT|EQ|LEQ|GEQ|NEQ;
-intnum: (PLUS|MINUS)? numAtom;
+logicalOp: AND|OR ;
+mulDivOp: MUL|DIV;
+addSubOp: PLUS|MINUS;
+intnum: addSubOp? numAtom;
 numAtom: USIGNINT;
 nameAtom: NAME;
 //Lexer rules

@@ -10,7 +10,7 @@ public interface Ast {
         record numAtom(int i) implements Atom {
 
         }
-        record strAtom(String s) implements Atom {
+        record nameAtom(String s) implements Atom {
 
         }
     }
