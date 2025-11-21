@@ -5,6 +5,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 
 import uk.ac.nott.cs.comp3012.coursework.ast.Ast;
 
@@ -54,9 +56,12 @@ public class Compiler {
      */
     public void runCompiler(String inputFile, String outputFile) throws IOException {
         StringBuilder programText = new StringBuilder();
-        Files.readAllLines(Path.of(inputFile)).forEach(programText::append);
+        List<String> lines = Files.readAllLines(Path.of(inputFile));
+        for(String line : lines) {
+            line += ' ';
+            programText.append(line);
+        }
         System.out.println("Program Text: " + programText);
-        //AstBuilder.buildAst(programText.toString());
 
         Ast program = frontend.runFrontend(programText.toString());
         byte[] code = backend.runBackend(program);
