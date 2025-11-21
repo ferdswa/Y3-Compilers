@@ -7,10 +7,40 @@ import uk.ac.nott.cs.comp3012.coursework.NottscriptVisitor;
  */
 public interface Ast {
     interface Atom extends Ast{
+        //numbers
         record numAtom(int i) implements Atom {
 
         }
+        record binNumAtom(String bin) implements Atom {
+
+        }
+        record octNumAtom(String oct) implements Atom {
+
+        }
+        record hexNumAtom(String hex) implements Atom {
+
+        }
+        //character literals
+        record charLiteralAtom(String charLiteral) implements Atom {
+
+        }
+
+        //names
         record nameAtom(String s) implements Atom {
+
+        }
+        //logicals
+        record logicAtom(String l) implements Atom {
+
+        }
+        //operators
+        record addSubAtom(char c) implements Atom {
+
+        }
+        record mulDivAtom(char c) implements Atom {
+
+        }
+        record relAtom(String r) implements Atom {
 
         }
     }
