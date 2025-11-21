@@ -1,86 +1,66 @@
 grammar Nottscript;
 //Parser rules
-program: (func | subrt )* progBlock (func | subrt )*;
-progStmt: PROGRAM NAME;
-endProgStmt: END PROGRAM NAME?;
-progBlock: progStmt progContent;
-progContent: declaration* statement* endProgStmt;
+program: block+ EOF;
 
-statement: assignment
-            | customType
-            | call
-            | ifBlock
-            | ifStmt
-            | doStmt
-            | doWhile
-            | read
-            | write
-            | allocPtr
-            | deallocPtr
-            | funcCall;
+block: PROGRAM nameAtom declaration* statement* END PROGRAM nameAtom? #programBlock
+      | FUNCTION nameAtom LEFTBRACKET (nameAtom (COMMA nameAtom)*)? RIGHTBRACKET declaration* statement* END FUNCTION nameAtom #voidFuncBlock
+      | FUNCTION nameAtom LEFTBRACKET (nameAtom (COMMA nameAtom)*)? RIGHTBRACKET RESULT LEFTBRACKET nameAtom RIGHTBRACKET declaration* statement* END FUNCTION nameAtom #returnFuncBlock
+      | SUBROUTINE nameAtom LEFTBRACKET (nameAtom (COMMA nameAtom)*)? RIGHTBRACKET declaration* statement* END SUBROUTINE nameAtom #subrtBlock;
 
-subrtStmt: SUBROUTINE sN LEFTBRACKET nvList? RIGHTBRACKET;
-endSubrtStmt: END SUBROUTINE sN;
-subrt: subrtStmt declaration* statement* endSubrtStmt;
-call: CALL sN LEFTBRACKET paramList? RIGHTBRACKET;
+declaration: typeSpec DBLCOL nameAtom (COMMA nameAtom)* #declareVar
+            | typeSpec POINTER DBLCOL nameAtom (COMMA nameAtom)* #declPtr
+            | typeSpec LEFTBRACKET numAtom (COMMA numAtom)* RIGHTBRACKET DBLCOL nameAtom (COMMA nameAtom)* #declArray
+            | typeSpec (LEFTBRACKET '*' (COMMA '*')* RIGHTBRACKET) POINTER DBLCOL nameAtom (COMMA nameAtom)* #declPtrArray;
 
-funcStmt: FUNCTION fN LEFTBRACKET nvList? RIGHTBRACKET
-        | FUNCTION fN LEFTBRACKET nvList? RIGHTBRACKET RESULT LEFTBRACKET paramN RIGHTBRACKET;
-endFuncStmt: END FUNCTION fN;
-func: funcStmt declaration* statement* endFuncStmt;
-funcCall: fN LEFTBRACKET paramList? RIGHTBRACKET;
+statement: NAME ASSIGN expr #baseAssign
+           | array ASSIGN expr #arrayAssign
+           | nameAtom FIELDACCESS nameAtom ASSIGN expr #ctAssign
+           | nameAtom FIELDACCESS array ASSIGN expr #ctArrayAssign
+           | TYPE nameAtom declaration+ END TYPE nameAtom #customTypeDecl
+           | CALL nameAtom LEFTBRACKET paramList? RIGHTBRACKET #call
+           | IF LEFTBRACKET expr RIGHTBRACKET THEN statement+ END IF #ifBlock
+           | IF LEFTBRACKET expr RIGHTBRACKET THEN statement+ ELSE statement+ END IF #ifElse
+           | IF LEFTBRACKET expr RIGHTBRACKET statement #ifStmt
+           | DO nameAtom ASSIGN (intnum|nameAtom) COMMA (intnum|nameAtom) COMMA (intnum|nameAtom) statement+ END DO #doIncrN1
+           | DO nameAtom ASSIGN (intnum|nameAtom) COMMA (intnum|nameAtom) statement+ END DO #doIncr1
+           | DO WHILE LEFTBRACKET expr RIGHTBRACKET statement+ END DO #doWhile
+           | READ (nameAtom|array) (COMMA (nameAtom|array))* #read
+           | WRITE expr (COMMA expr)* #write
+           | ALLOCATE nameAtom #allocPtr
+           | ALLOCATE nameAtom COMMA (USIGNINT|nameAtom) #allocPtrArray
+           | DEALLOCATE nameAtom #deallocPtr
+           | nameAtom LEFTBRACKET paramList? RIGHTBRACKET #funcCall;
 
-declPtr: (INTEGER | REAL | CHARACTER | LOGICAL | TYPE LEFTBRACKET customTypeName RIGHTBRACKET) POINTER DBLCOL nvList;
-declPtrArray: (INTEGER | REAL | CHARACTER | LOGICAL | TYPE LEFTBRACKET customTypeName RIGHTBRACKET) (LEFTBRACKET '*' (COMMA '*')* RIGHTBRACKET) POINTER DBLCOL nvList;
-typeSpec: (INTEGER | REAL | CHARACTER | LOGICAL | TYPE LEFTBRACKET customTypeName RIGHTBRACKET);
-declArray: typeSpec  (LEFTBRACKET maxIndex (COMMA maxIndex)* RIGHTBRACKET)?;
+typeSpec: INTEGER | REAL | CHARACTER | LOGICAL | TYPE LEFTBRACKET nameAtom RIGHTBRACKET;
 
-array: varN LEFTBRACKET (index|varN) (COMMA (index|varN))* RIGHTBRACKET;
-nvList: varN (COMMA varN)*;
-paramList: (paramN|expr0) (COMMA (paramN|expr0))*;
-
-declaration: (typeSpec DBLCOL nvList) | declPtr|declArray|declPtrArray;
-
-ifStmt: IF LEFTBRACKET expr0 RIGHTBRACKET statement;
-
-ifBlock: IF LEFTBRACKET expr0 RIGHTBRACKET THEN statement+ END IF|
-         IF LEFTBRACKET expr0 RIGHTBRACKET THEN statement+ elseCond END IF;
-elseCond: ELSE statement+;
-
-doStmt: DO varN ASSIGN (intnum|varN) COMMA (intnum|varN) COMMA (intnum|varN) statement+ END DO
-    | DO varN ASSIGN (intnum|varN) COMMA (intnum|varN) statement+ END DO;
-doWhile: DO WHILE LEFTBRACKET expr0 RIGHTBRACKET statement+ END DO;
-
-read: READ (varN|array) (COMMA (varN|array))*;
-write: WRITE expr0 (COMMA expr0)*;
-
-allocPtr: ALLOCATE ptrName
-        | ALLOCATE ptrName COMMA (USIGNINT|varN);
-deallocPtr: DEALLOCATE ptrName;
+array: nameAtom LEFTBRACKET (numAtom|nameAtom) (COMMA (numAtom|nameAtom))* RIGHTBRACKET;
+paramList: (nameAtom|expr) (COMMA (nameAtom|expr))*;
 
 //Operators in order
 powExpr: basic (POW basic)*;
 mulDivExpr: powExpr ((MUL|DIV) powExpr)*;
-addSubExpr: (PLUS|MINUS)? mulDivExpr((PLUS|MINUS)mulDivExpr)*;
+addSubExpr: mulDivExpr((PLUS|MINUS)mulDivExpr)*;
 concatExpr: addSubExpr(CONCAT addSubExpr)*;
 relExpr: concatExpr(relativeOp concatExpr)*;
 logExpr: relExpr((AND|OR)relExpr)*;
-basic: (TRUE | FALSE | REALNUM | HEXNUM | BINNUM | STRING | intnum |LEFTBRACKET expr0 RIGHTBRACKET| array | funcCall | varN);//pointers can be read as arrays
-expr0: logExpr;
 
-customType: TYPE customTypeName declaration+ END TYPE customTypeName;
-ctField: NAME;
-customTypeName: NAME;
-assignment: varN ASSIGN expr0 | array ASSIGN expr0 | customTypeName FIELDACCESS ctField ASSIGN expr0 | customTypeName FIELDACCESS array ASSIGN expr0 ;//statement not expr
+basic: (TRUE|FALSE)  #logicSExpr
+       | REALNUM   #realSExpr
+       | HEXNUM    #hexSExpr
+       | BINNUM    #binSExpr
+       | STRING    #charSeqSExpr
+       | intnum    #intSExpr
+       | LEFTBRACKET expr RIGHTBRACKET #exprSExpr
+       | array     #arrSExpr //Can be confused for function call and vice versa
+       | nameAtom LEFTBRACKET paramList? RIGHTBRACKET #funcSExpr
+       | NAME      #nameSExpr;//pointers can be read as arrays
+
+expr: logExpr;
+
 relativeOp: LT|GT|EQ|LEQ|GEQ|NEQ;
-intnum: (PLUS|MINUS)? USIGNINT;
-index: USIGNINT;
-maxIndex: USIGNINT;
-varN: NAME;
-paramN: NAME;
-ptrName: NAME;
-fN: NAME;
-sN: NAME;
+intnum: (PLUS|MINUS)? numAtom;
+numAtom: USIGNINT;
+nameAtom: NAME;
 //Lexer rules
 //Keywords
 ALLOCATE: 'allocate';
@@ -147,7 +127,7 @@ REALNUM: SIGN?DIGIT+'.'DIGIT*//Either not both
         | SIGN?DIGIT*'.'DIGIT+;
 COMMENT: SPACES*'!'[\t -~]*NEWLINE* -> skip;//whitespace ignored pre comment
 WHITESPACE: (SPACES|NEWLINE)+ -> skip;//Skip all whitespaces
-NEWLINE: [\r\n];
+NEWLINE: [\r\n]+;
 //Fragments
 fragment ALPHANUM: DIGIT|LETTER;
 fragment USCORE: '_';
