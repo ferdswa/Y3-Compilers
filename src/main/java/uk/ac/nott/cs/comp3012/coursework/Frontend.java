@@ -17,13 +17,13 @@ public class Frontend {
         TokenStream tokens = new CommonTokenStream(lx);
         NottscriptParser px = new NottscriptParser(tokens);
 
-//        Set<String> symbols = new HashSet<>();
-//        AstBuilder astBuilder = new AstBuilder(symbols);
-//        astBuilder.visitProgram(px.program());
+        Set<String> symbols = new HashSet<>();
+        AstBuilder astBuilder = new AstBuilder(symbols);
+        astBuilder.visitProgram(px.program());
 
-        ParseTreeWalker walker = new ParseTreeWalker();
-        ParseTreePrinter printer = new ParseTreePrinter();
-        walker.walk(printer, px.program());
+//        ParseTreeWalker walker = new ParseTreeWalker();
+//        ParseTreePrinter printer = new ParseTreePrinter();
+//        walker.walk(printer, px.program());
         return null;
     }
 }

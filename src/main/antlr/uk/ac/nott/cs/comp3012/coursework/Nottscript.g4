@@ -6,10 +6,12 @@ block: PROGRAM nameAtom declaration* statement* END PROGRAM nameAtom #programBlo
       | FUNCTION nameAtom LEFTBRACKET declaratorParamList? RIGHTBRACKET RESULT LEFTBRACKET nameAtom RIGHTBRACKET declaration* statement* END FUNCTION nameAtom #returnFuncBlock
       | SUBROUTINE nameAtom LEFTBRACKET declaratorParamList? RIGHTBRACKET declaration* statement* END SUBROUTINE nameAtom #subrtBlock;
 declaratorParamList: nameAtom (COMMA nameAtom)*;
+//Declarations
 declaration: typeSpec DBLCOL nameAtom (COMMA nameAtom)* #declareVar
             | typeSpec POINTER DBLCOL nameAtom (COMMA nameAtom)* #declPtr
             | typeSpec LEFTBRACKET numAtom (COMMA numAtom)* RIGHTBRACKET DBLCOL nameAtom (COMMA nameAtom)* #declArray
             | typeSpec (LEFTBRACKET '*' (COMMA '*')* RIGHTBRACKET) POINTER DBLCOL nameAtom (COMMA nameAtom)* #declPtrArray;
+//All the statements
 statement: nameAtom ASSIGN expr #baseAssign
            | array ASSIGN expr #arrayAssign
            | nameAtom FIELDACCESS nameAtom ASSIGN expr #ctAssign
@@ -31,6 +33,7 @@ statement: nameAtom ASSIGN expr #baseAssign
 typeSpec: INTEGER | REAL | CHARACTER | LOGICAL | TYPE LEFTBRACKET nameAtom RIGHTBRACKET;
 array: nameAtom LEFTBRACKET (numAtom|nameAtom) (COMMA (numAtom|nameAtom))* RIGHTBRACKET;
 paramList: (nameAtom|expr) (COMMA (nameAtom|expr))*;
+//Expressions - ordered in inverse precedence
 expr: logExpr;
 logExpr: relExpr(logicalOp relExpr)*;
 relExpr: concatExpr(relativeOp concatExpr)*;
@@ -49,6 +52,7 @@ basic: (TRUE|FALSE)  #logicSExpr
        | array     #arrSExpr //Can be confused for function call and vice versa
        | nameAtom LEFTBRACKET paramList? RIGHTBRACKET #funcSExpr
        | nameAtom      #nameSExpr;//pointers can be read as arrays
+//atoms
 relativeOp: LT|GT|EQ|LEQ|GEQ|NEQ;
 logicalOp: AND|OR ;
 mulDivOp: MUL|DIV;

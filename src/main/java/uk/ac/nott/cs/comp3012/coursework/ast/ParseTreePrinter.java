@@ -356,7 +356,12 @@ public class ParseTreePrinter extends NottscriptBaseListener {
     @Override public void exitParamList(NottscriptParser.ParamListContext ctx) {
         indent -= 2;
     }
-    
+    @Override public void enterFieldAccExpr(NottscriptParser.FieldAccExprContext ctx) {
+        printIndent();
+        System.out.println("Begin field access expression");
+        indent += 2;
+    }
+    @Override public void exitFieldAccExpr(NottscriptParser.FieldAccExprContext ctx) { indent -=2;}
     @Override public void enterPowExpr(NottscriptParser.PowExprContext ctx) {
         printIndent();
         System.out.println("Begin power expression");
