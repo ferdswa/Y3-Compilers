@@ -4,7 +4,8 @@ program: (block)+ EOF;
 block: PROGRAM nameAtom declaration* statement* END PROGRAM nameAtom #programBlock
       | FUNCTION nameAtom LEFTBRACKET declaratorParamList? RIGHTBRACKET declaration* statement* END FUNCTION nameAtom #voidFuncBlock
       | FUNCTION nameAtom LEFTBRACKET declaratorParamList? RIGHTBRACKET RESULT LEFTBRACKET nameAtom RIGHTBRACKET declaration* statement* END FUNCTION nameAtom #returnFuncBlock
-      | SUBROUTINE nameAtom LEFTBRACKET declaratorParamList? RIGHTBRACKET declaration* statement* END SUBROUTINE nameAtom #subrtBlock;
+      | SUBROUTINE nameAtom LEFTBRACKET declaratorParamList? RIGHTBRACKET declaration* statement* END SUBROUTINE nameAtom #subrtBlock
+      | TYPE nameAtom declaration+ END TYPE nameAtom #customTypeDeclBlock;
 declaratorParamList: nameAtom (COMMA nameAtom)*;
 //Declarations
 declaration: typeSpec DBLCOL nameAtom (COMMA nameAtom)* #declareVar
@@ -16,7 +17,6 @@ statement: nameAtom ASSIGN expr #baseAssign
            | array ASSIGN expr #arrayAssign
            | nameAtom FIELDACCESS nameAtom ASSIGN expr #ctAssign
            | nameAtom FIELDACCESS array ASSIGN expr #ctArrayAssign
-           | TYPE nameAtom declaration+ END TYPE nameAtom #customTypeDecl
            | CALL nameAtom LEFTBRACKET paramList? RIGHTBRACKET #call
            | IF LEFTBRACKET expr RIGHTBRACKET THEN statement+ END IF #ifBlock
            | IF LEFTBRACKET expr RIGHTBRACKET THEN statement+ ELSE statement+ END IF #ifElse

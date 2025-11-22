@@ -261,21 +261,9 @@ public interface Ast {
             super(elems);
         }
     }
-    class CustomTypeDecl extends ArrayList<Ast> implements Ast {
-        public CustomTypeDecl() {
-            super();
-        }
-        public CustomTypeDecl(Collection<? extends Ast> elems) {
-            super(elems);
-        }
-    }
     class CustomTypeArrayAssign  extends ArrayList<Ast> implements Ast {
-        public CustomTypeArrayAssign() {
-            super();
-        }
-        public CustomTypeArrayAssign(Collection<? extends Ast> elems) {
-            super(elems);
-        }
+        public CustomTypeArrayAssign() {super();}
+        public CustomTypeArrayAssign(Collection<? extends Ast> elems) {super(elems);}
     }
     class CustomTypeAssign  extends ArrayList<Ast> implements Ast {
         public CustomTypeAssign() {
@@ -340,6 +328,11 @@ public interface Ast {
             super(elems);
         }
     }
+    //Blocks - A block is a list of declarations followed by a list of statements, except CustomTypeDeclBlock which only has declarations
+    class CustomTypeDeclBlock extends ArrayList<Ast> implements Ast {
+        public CustomTypeDeclBlock() {super();}
+        public CustomTypeDeclBlock(Collection<? extends Ast> elems) {super(elems);}
+    }
     class SbrtBlock  extends ArrayList<Ast> implements Ast {
         public SbrtBlock() {
             super();
@@ -360,11 +353,11 @@ public interface Ast {
         public ReturnFuncBlock() {
             super();
         }
+
         public ReturnFuncBlock(Collection<? extends Ast> elems) {
             super(elems);
         }
     }
-    //A block is a list of declarations followed by a list of statements
     class ProgramBlock  extends ArrayList<Ast> implements Ast {
         public ProgramBlock() {
             super();
