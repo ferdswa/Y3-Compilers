@@ -74,6 +74,16 @@ public class ParseTreePrinter extends NottscriptBaseListener {
         System.out.println("End subrt block");
         indent -= 2;
     }
+    @Override public void enterCustomTypeDeclBlock(NottscriptParser.CustomTypeDeclBlockContext ctx) {
+        printIndent();
+        System.out.println("Begin custom type declaration block");
+        indent += 2;
+    }
+    @Override public void exitCustomTypeDeclBlock(NottscriptParser.CustomTypeDeclBlockContext ctx) {
+        printIndent();
+        System.out.println("End custom type declaration block");
+        indent -= 2;
+    }
     @Override
     public void enterDeclaratorParamList(NottscriptParser.DeclaratorParamListContext ctx) {
         printIndent();
@@ -171,17 +181,17 @@ public class ParseTreePrinter extends NottscriptBaseListener {
         indent -= 2;
     }
     
-    @Override public void enterCustomTypeDecl(NottscriptParser.CustomTypeDeclContext ctx) {
-        printIndent();
-        System.out.println("Begin custom type decl");
-        indent += 2;
-    }
-    
-    @Override public void exitCustomTypeDecl(NottscriptParser.CustomTypeDeclContext ctx) {
-        printIndent();
-        System.out.println("End custom type decl");
-        indent -= 2;
-    }
+//    @Override public void enterCustomTypeDecl(NottscriptParser.CustomTypeDeclContext ctx) {
+//        printIndent();
+//        System.out.println("Begin custom type decl");
+//        indent += 2;
+//    }
+//
+//    @Override public void exitCustomTypeDecl(NottscriptParser.CustomTypeDeclContext ctx) {
+//        printIndent();
+//        System.out.println("End custom type decl");
+//        indent -= 2;
+//    }
     
     @Override public void enterCall(NottscriptParser.CallContext ctx) {
         printIndent();
@@ -356,7 +366,12 @@ public class ParseTreePrinter extends NottscriptBaseListener {
     @Override public void exitParamList(NottscriptParser.ParamListContext ctx) {
         indent -= 2;
     }
-    
+    @Override public void enterFieldAccExpr(NottscriptParser.FieldAccExprContext ctx) {
+        printIndent();
+        System.out.println("Begin field access expression");
+        indent += 2;
+    }
+    @Override public void exitFieldAccExpr(NottscriptParser.FieldAccExprContext ctx) { indent -=2;}
     @Override public void enterPowExpr(NottscriptParser.PowExprContext ctx) {
         printIndent();
         System.out.println("Begin power expression");
