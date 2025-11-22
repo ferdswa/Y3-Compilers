@@ -13,13 +13,8 @@ import java.util.Set;
 
 public class Frontend {
     public Ast runFrontend(String input){
-        NottscriptLexer lx = new NottscriptLexer(CharStreams.fromString(input));
-        TokenStream tokens = new CommonTokenStream(lx);
-        NottscriptParser px = new NottscriptParser(tokens);
-
-        Set<String> symbols = new HashSet<>();
-        AstBuilder astBuilder = new AstBuilder(symbols);
-        astBuilder.visitProgram(px.program());
+        AstBuilder astBuilder = new AstBuilder(new HashSet<>());
+        astBuilder.buildAst(input);
 
 //        ParseTreeWalker walker = new ParseTreeWalker();
 //        ParseTreePrinter printer = new ParseTreePrinter();
