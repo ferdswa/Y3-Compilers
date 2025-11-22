@@ -1,6 +1,7 @@
 package uk.ac.nott.cs.comp3012.coursework.ast;
 
-import uk.ac.nott.cs.comp3012.coursework.NottscriptVisitor;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * Base interface type for all AST classes. Modify it, delete it, or do whatever you want with it.
@@ -43,6 +44,14 @@ public interface Ast {
         record relAtom(String r) implements Atom {
 
         }
+        //types
+        record typeAtom(String t) implements Atom {
+
+        }
+    }
+    class IntNum extends ArrayList<Ast> implements Ast {
+        public IntNum() {super();}
+        public IntNum(Collection<?extends Ast> elems) {super(elems);}
     }
 
 }
