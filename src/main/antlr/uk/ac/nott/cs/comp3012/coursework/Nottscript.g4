@@ -23,8 +23,8 @@ statement: nameAtom ASSIGN expr #baseAssign
            | IF LEFTBRACKET expr RIGHTBRACKET THEN statement+ END IF #ifBlock
            | IF LEFTBRACKET expr RIGHTBRACKET THEN statement+ elseStmt END IF #ifElse
            | IF LEFTBRACKET expr RIGHTBRACKET statement #ifStmt
-           | DO nameAtom ASSIGN (intnum|nameAtom) COMMA (intnum|nameAtom) COMMA (intnum|nameAtom) statement+ END DO #doIncrN1
-           | DO nameAtom ASSIGN (intnum|nameAtom) COMMA (intnum|nameAtom) statement+ END DO #doIncr1
+           | DO nameAtom ASSIGN doParam COMMA doParam COMMA doParam statement+ END DO #doIncrN1
+           | DO nameAtom ASSIGN doParam COMMA doParam statement+ END DO #doIncr1
            | DO WHILE LEFTBRACKET expr RIGHTBRACKET statement+ END DO #doWhile
            | READ (nameAtom|array) (COMMA (nameAtom|array))* #read
            | WRITE expr (COMMA expr)* #write
@@ -34,6 +34,7 @@ statement: nameAtom ASSIGN expr #baseAssign
            | nameAtom LEFTBRACKET paramList? RIGHTBRACKET #funcCall;
 
 elseStmt: ELSE statement+;
+doParam: (intnum|nameAtom);
 array: nameAtom LEFTBRACKET (numAtom|nameAtom) (COMMA (numAtom|nameAtom))* RIGHTBRACKET;
 paramList: (nameAtom|expr) (COMMA (nameAtom|expr))*;
 //Expressions - ordered in inverse precedence

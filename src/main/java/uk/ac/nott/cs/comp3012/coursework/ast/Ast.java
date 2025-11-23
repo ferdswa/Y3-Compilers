@@ -240,6 +240,14 @@ public interface Ast {
             super(elems);
         }
     }
+    class DoParam extends ArrayList<Ast> implements Ast {
+        public DoParam() {
+            super();
+        }
+        public DoParam(Collection<? extends Ast> elems) {
+            super(elems);
+        }
+    }
     class IfStatement extends ArrayList<Ast> implements Ast {
         public IfStatement() {
             super();

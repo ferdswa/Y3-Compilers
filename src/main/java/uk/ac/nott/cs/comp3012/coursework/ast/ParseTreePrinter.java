@@ -287,6 +287,18 @@ public class ParseTreePrinter extends NottscriptBaseListener {
         System.out.println("End do while");
         indent -= 2;
     }
+
+    @Override public void enterDoParam(NottscriptParser.DoParamContext ctx) {
+        printIndent();
+        System.out.println("Begin do param");
+        indent += 2;
+    }
+
+    @Override public void exitDoParam(NottscriptParser.DoParamContext ctx) {
+        printIndent();
+        System.out.println("End do param");
+        indent -= 2;
+    }
     
     @Override public void enterRead(NottscriptParser.ReadContext ctx) {
         printIndent();

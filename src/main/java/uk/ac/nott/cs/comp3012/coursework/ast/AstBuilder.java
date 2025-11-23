@@ -216,4 +216,50 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         ifStatement.add(visit(statement));
         return ifStatement;
     }
+    @Override
+    public Ast visitDoParam(NottscriptParser.DoParamContext ctx) {
+        Ast.DoParam doParam = new Ast.DoParam();
+        NottscriptParser.NameAtomContext name =  ctx.nameAtom();
+        if(name!=null){
+            doParam.add(visit(name));
+        }
+        else{
+            NottscriptParser.IntnumContext num = ctx.intnum();
+            doParam.add(visit(num));
+        }
+        return doParam;
+    }
+    @Override
+    public Ast visitDoIncrN1(NottscriptParser.DoIncrN1Context ctx) {
+        Ast.DoIncrNot1 doIncrNot1 = new Ast.DoIncrNot1();
+        for(NottscriptParser.DoParamContext doParamContext : ctx.doParam()){
+            doIncrNot1.add(visit(doParamContext));
+        }
+        for(NottscriptParser.StatementContext statement : ctx.statement()){
+            doIncrNot1.add(visit(statement));
+        }
+        return doIncrNot1;
+    }
+    @Override
+    public Ast visitDoIncr1(NottscriptParser.DoIncr1Context ctx) {
+        Ast.DoIncr1 doIncr1 = new Ast.DoIncr1();
+        for(NottscriptParser.DoParamContext doParamContext : ctx.doParam()){
+            doIncr1.add(visit(doParamContext));
+        }
+        for(NottscriptParser.StatementContext statement : ctx.statement()){
+            doIncr1.add(visit(statement));
+        }
+        return doIncr1;
+    }
+    @Override
+    public Ast visitDoWhile(NottscriptParser.DoWhileContext ctx) {
+        Ast.DoWhile doWhile = new Ast.DoWhile();
+        NottscriptParser.ExprContext expr = ctx.expr();
+        doWhile.add(visit(expr));
+        for(NottscriptParser.StatementContext statement : ctx.statement()){
+            doWhile.add(visit(statement));
+        }
+        return doWhile;
+    }
+
 }
