@@ -256,6 +256,10 @@ public interface Ast {
             super(elems);
         }
     }
+    class ElseStmt extends ArrayList<Ast> implements Ast {
+        public ElseStmt() {super();}
+        public ElseStmt(Collection<? extends Ast> elems) {super(elems);}
+    }
     class IfBlock extends ArrayList<Ast> implements Ast {
         public IfBlock() {
             super();

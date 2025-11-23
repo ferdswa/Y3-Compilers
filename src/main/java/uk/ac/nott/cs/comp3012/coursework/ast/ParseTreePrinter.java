@@ -228,6 +228,17 @@ public class ParseTreePrinter extends NottscriptBaseListener {
         System.out.println("End if else");
         indent -= 2;
     }
+
+    @Override public void enterElseStmt(NottscriptParser.ElseStmtContext ctx) {
+        printIndent();
+        System.out.println("Begin else");
+        indent += 2;
+    }
+    @Override public void exitElseStmt(NottscriptParser.ElseStmtContext ctx) {
+        printIndent();
+        System.out.println("End else");
+        indent -= 2;
+    }
     
     @Override public void enterIfStmt(NottscriptParser.IfStmtContext ctx) {
         printIndent();

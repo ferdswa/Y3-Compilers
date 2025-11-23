@@ -21,7 +21,7 @@ statement: nameAtom ASSIGN expr #baseAssign
            | nameAtom FIELDACCESS array ASSIGN expr #ctArrayAssign
            | CALL nameAtom LEFTBRACKET paramList? RIGHTBRACKET #call
            | IF LEFTBRACKET expr RIGHTBRACKET THEN statement+ END IF #ifBlock
-           | IF LEFTBRACKET expr RIGHTBRACKET THEN statement+ ELSE statement+ END IF #ifElse
+           | IF LEFTBRACKET expr RIGHTBRACKET THEN statement+ elseStmt END IF #ifElse
            | IF LEFTBRACKET expr RIGHTBRACKET statement #ifStmt
            | DO nameAtom ASSIGN (intnum|nameAtom) COMMA (intnum|nameAtom) COMMA (intnum|nameAtom) statement+ END DO #doIncrN1
            | DO nameAtom ASSIGN (intnum|nameAtom) COMMA (intnum|nameAtom) statement+ END DO #doIncr1
@@ -33,6 +33,7 @@ statement: nameAtom ASSIGN expr #baseAssign
            | DEALLOCATE nameAtom #deallocPtr
            | nameAtom LEFTBRACKET paramList? RIGHTBRACKET #funcCall;
 
+elseStmt: ELSE statement+;
 array: nameAtom LEFTBRACKET (numAtom|nameAtom) (COMMA (numAtom|nameAtom))* RIGHTBRACKET;
 paramList: (nameAtom|expr) (COMMA (nameAtom|expr))*;
 //Expressions - ordered in inverse precedence
