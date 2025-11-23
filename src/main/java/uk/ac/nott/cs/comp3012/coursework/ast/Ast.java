@@ -44,10 +44,21 @@ public interface Ast {
         record relAtom(String r) implements Atom {
 
         }
+        record starAtom(char c) implements Atom {
+
+        }
         //types (Called typeSpec)
         record typeAtom(String t) implements Atom {
 
         }
+    }
+    class CustomTypeSpec extends ArrayList <Ast> implements Ast {
+        public CustomTypeSpec() {super();}
+        public CustomTypeSpec(Collection<? extends Ast> elems) {super(elems);}
+    }
+    class InbuiltTypeSpec extends ArrayList <Ast> implements Ast {
+        public InbuiltTypeSpec() {super();}
+        public InbuiltTypeSpec(Collection<? extends Ast> elems) {super(elems);}
     }
     class IntNum extends ArrayList<Ast> implements Ast {
         public IntNum() {
@@ -205,6 +216,26 @@ public interface Ast {
             super(elems);
         }
     }
+    class ReadParam extends ArrayList<Ast> implements Ast {
+        public ReadParam() {
+            super();
+        }
+        public ReadParam(Collection<? extends Ast> elems) {
+            super(elems);
+        }
+    }
+    class ArrayIndex extends ArrayList<Ast> implements Ast {
+        public ArrayIndex() {super();}
+        public ArrayIndex(Collection<? extends Ast> elems) {super(elems);}
+    }
+    class ParamSubList extends ArrayList<Ast> implements Ast {
+        public ParamSubList() {
+            super();
+        }
+        public ParamSubList(Collection<? extends Ast> elems) {
+            super(elems);
+        }
+    }
     class DoWhile extends ArrayList<Ast> implements Ast {
         public DoWhile() {
             super();
@@ -229,6 +260,14 @@ public interface Ast {
             super(elems);
         }
     }
+    class DoParam extends ArrayList<Ast> implements Ast {
+        public DoParam() {
+            super();
+        }
+        public DoParam(Collection<? extends Ast> elems) {
+            super(elems);
+        }
+    }
     class IfStatement extends ArrayList<Ast> implements Ast {
         public IfStatement() {
             super();
@@ -244,6 +283,10 @@ public interface Ast {
         public IfElseBlock(Collection<? extends Ast> elems) {
             super(elems);
         }
+    }
+    class ElseStmt extends ArrayList<Ast> implements Ast {
+        public ElseStmt() {super();}
+        public ElseStmt(Collection<? extends Ast> elems) {super(elems);}
     }
     class IfBlock extends ArrayList<Ast> implements Ast {
         public IfBlock() {
