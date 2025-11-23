@@ -1,20 +1,22 @@
 package uk.ac.nott.cs.comp3012.coursework.ast;
 
+import com.ibm.icu.text.SymbolTable;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
 import uk.ac.nott.cs.comp3012.coursework.NottscriptBaseVisitor;
 import uk.ac.nott.cs.comp3012.coursework.NottscriptLexer;
 import uk.ac.nott.cs.comp3012.coursework.NottscriptParser;
+import uk.ac.nott.cs.comp3012.coursework.util.HashMapTable;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class AstBuilder extends NottscriptBaseVisitor<Ast>
 {
-    private final Set<String> symbols;
+    private final HashMapTable<String,String,String> symbols;
 
-    public AstBuilder(Set<String> symbols) {
+    public AstBuilder(HashMapTable<String,String,String> symbols) {
         this.symbols = symbols;
     }
 
@@ -23,18 +25,18 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         TokenStream tokens = new CommonTokenStream(lx);
         NottscriptParser px = new NottscriptParser(tokens);
 
-        Set<String> symbols = new HashSet<>();
+        HashMapTable<String,String,String> symbols = new HashMapTable<>();
         AstBuilder astBuilder = new AstBuilder(symbols);
         Ast.BlockList blockList = (Ast.BlockList) astBuilder.visitProgram(px.program());
-        System.out.println(blockList);
-
+        for(Ast ast : blockList){
+            System.out.println(ast.toString());
+        }
     }
 
     @Override
     public Ast visitProgram(NottscriptParser.ProgramContext ctx) {
         Ast.BlockList blockList = new Ast.BlockList();
         for(NottscriptParser.BlockContext blockContext : ctx.block()){
-            System.out.println("Block Found: "+blockContext.getText());
             Ast elem = visit(blockContext);
             blockList.add(elem);
         }
@@ -45,14 +47,14 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitProgramBlock(NottscriptParser.ProgramBlockContext ctx) {
         Ast.ProgramBlock block = new Ast.ProgramBlock();
+
         NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom(0);
         block.add(visit(openNameContext));
+
         for(NottscriptParser.DeclarationContext declarationContext : ctx.declaration()){
-            System.out.println("Decl Found: "+declarationContext.getText());
             block.add(visit(declarationContext));
         }
         for(NottscriptParser.StatementContext statementContext : ctx.statement()){
-            System.out.println("Stmt Found: "+statementContext.getText());
             block.add(visit(statementContext));
         }
         NottscriptParser.NameAtomContext closeNameContext = ctx.nameAtom(1);
@@ -126,7 +128,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitBaseAssign(NottscriptParser.BaseAssignContext ctx) {
         Ast.NormalAssign normalAssign = new Ast.NormalAssign();
-        NottscriptParser.NameAtomContext name =  ctx.nameAtom();
+        NottscriptParser.NameAtomContext name = ctx.nameAtom();
         normalAssign.add(visit(name));
         NottscriptParser.ExprContext expr = ctx.expr();
         normalAssign.add(visit(expr));
@@ -175,7 +177,6 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     public Ast visitIfBlock(NottscriptParser.IfBlockContext ctx) {
         Ast.IfBlock ifBlock = new Ast.IfBlock();
         NottscriptParser.ExprContext expr = ctx.expr();
-        System.out.println("Found multi-line if: "+ctx.getText());
         ifBlock.add(visit(expr));
         for(NottscriptParser.StatementContext statement : ctx.statement()){
             ifBlock.add(visit(statement));
@@ -187,7 +188,6 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         Ast.IfElseBlock ifElseBlock = new Ast.IfElseBlock();
         NottscriptParser.ExprContext expr = ctx.expr();
         ifElseBlock.add(visit(expr));
-        System.out.println("Found multi-line if: "+ctx.getText());
         for(NottscriptParser.StatementContext statement : ctx.statement()){
             ifElseBlock.add(visit(statement));
         }
@@ -198,7 +198,6 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitElseStmt(NottscriptParser.ElseStmtContext ctx) {
         Ast.ElseStmt elseStmt = new Ast.ElseStmt();
-        System.out.println("Found else: "+ctx.getText());
         for(NottscriptParser.StatementContext statement : ctx.statement()){
             elseStmt.add(visit(statement));
         }
@@ -207,7 +206,6 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitIfStmt(NottscriptParser.IfStmtContext ctx) {
         Ast.IfStatement ifStatement = new Ast.IfStatement();
-        System.out.println("Found single-line if: "+ctx.getText());
         NottscriptParser.ExprContext expr = ctx.expr();
         ifStatement.add(visit(expr));
         NottscriptParser.StatementContext statement = ctx.statement();
@@ -420,6 +418,9 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         for(NottscriptParser.PowExprContext powExprContext: ctx.powExpr()){
             mulDivExpr.add(visit(powExprContext));
         }
+        for(NottscriptParser.MulDivOpContext mulDivOpContext: ctx.mulDivOp()){
+            mulDivExpr.add(visit(mulDivOpContext));
+        }
         return mulDivExpr;
     }
     @Override
@@ -438,5 +439,121 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         }
         return fieldAccessExpr;
     }
-
+    @Override
+    public Ast visitLogicSExpr(NottscriptParser.LogicSExprContext ctx) {
+        String boolVal = ctx.getText();
+        return new Ast.Atom.boolAtom(boolVal);
+    }
+    @Override
+    public Ast visitHexSExpr(NottscriptParser.HexSExprContext ctx) {
+        String hexVal = ctx.getText();
+        return new Ast.Atom.hexNumAtom(hexVal);
+    }
+    @Override
+    public Ast visitRealSExpr(NottscriptParser.RealSExprContext ctx) {
+        float realVal = Float.parseFloat(ctx.getText());
+        return new Ast.Atom.realAtom(realVal);
+    }
+    @Override
+    public Ast visitBinSExpr(NottscriptParser.BinSExprContext ctx) {
+        String binVal = ctx.getText();
+        return new Ast.Atom.binNumAtom(binVal);
+    }
+    @Override
+    public Ast visitCharSeqSExpr(NottscriptParser.CharSeqSExprContext ctx) {
+        String charVal = ctx.getText();
+        return new Ast.Atom.charLiteralAtom(charVal);
+    }
+    @Override
+    public Ast visitIntSExpr(NottscriptParser.IntSExprContext ctx) {
+        Ast.IntSExpr intSExpr = new Ast.IntSExpr();
+        intSExpr.add(visit(ctx.intnum()));
+        return intSExpr;
+    }
+    @Override
+    public Ast visitExprSExpr(NottscriptParser.ExprSExprContext ctx) {
+        Ast.ExprSExpr expr = new Ast.ExprSExpr();
+        expr.add(visit(ctx.expr()));
+        return expr;
+    }
+    @Override
+    public Ast visitArrSExpr(NottscriptParser.ArrSExprContext ctx) {
+        Ast.ArrayDef arrayDef = new Ast.ArrayDef();
+        arrayDef.add(visit(ctx.array()));
+        return arrayDef;
+    }
+    @Override
+    public Ast visitFuncSExpr(NottscriptParser.FuncSExprContext ctx) {
+        Ast.FuncSExpr funcSExpr = new Ast.FuncSExpr();
+        NottscriptParser.NameAtomContext nameAtomContext = ctx.nameAtom();
+        funcSExpr.add(visit(nameAtomContext));
+        NottscriptParser.ParamListContext paramListContext = ctx.paramList();
+        funcSExpr.add(visit(paramListContext));
+        return funcSExpr;
+    }
+    @Override
+    public Ast visitNameSExpr(NottscriptParser.NameSExprContext ctx) {
+        Ast.NameSExpr nameSExpr = new Ast.NameSExpr();
+        nameSExpr.add(visit(ctx.nameAtom()));
+        return nameSExpr;
+    }
+    //Atoms
+    @Override
+    public Ast visitRelativeOp(NottscriptParser.RelativeOpContext ctx) {
+        String op = ctx.getText();
+        //symbols.add(op);
+        return new Ast.Atom.relAtom(op);
+    }
+    @Override
+    public Ast visitTypeAtom(NottscriptParser.TypeAtomContext ctx) {
+        String type = ctx.getText();
+        //symbols.add(type);
+        return new Ast.Atom.typeAtom(type);
+    }
+    @Override
+    public Ast visitLogicalOp(NottscriptParser.LogicalOpContext ctx) {
+        String op = ctx.getText();
+        //symbols.add(op);
+        return new Ast.Atom.logicAtom(op);
+    }
+    @Override
+    public Ast visitMulDivOp(NottscriptParser.MulDivOpContext ctx) {
+        String op = ctx.getText();
+        //symbols.add(op);
+        return new Ast.Atom.mulDivAtom(op);
+    }
+    @Override
+    public Ast visitAddSubOp(NottscriptParser.AddSubOpContext ctx) {
+        String op = ctx.getText();
+        //symbols.add(op);
+        return new Ast.Atom.addSubAtom(op);
+    }
+    @Override
+    public Ast visitStar(NottscriptParser.StarContext ctx) {
+        String op = ctx.getText();
+        //symbols.add(op);
+        return new Ast.Atom.starAtom(op);
+    }
+    @Override
+    public Ast visitIntnum(NottscriptParser.IntnumContext ctx) {
+        Ast.IntNum intNum = new Ast.IntNum();
+        NottscriptParser.AddSubOpContext starContext = ctx.addSubOp();
+        if(starContext!=null){
+            intNum.add(visit(starContext));
+        }
+        NottscriptParser.NumAtomContext numAtomContext = ctx.numAtom();
+        intNum.add(visit(numAtomContext));
+        return intNum;
+    }
+    @Override
+    public Ast visitNumAtom(NottscriptParser.NumAtomContext ctx) {
+        int num = Integer.parseInt(ctx.getText());
+        return new Ast.Atom.numAtom(num);
+    }
+    @Override
+    public Ast visitNameAtom(NottscriptParser.NameAtomContext ctx) {
+        String name = ctx.getText();
+        //symbols.add(name);
+        return new Ast.Atom.nameAtom(name);
+    }
 }
