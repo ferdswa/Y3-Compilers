@@ -30,6 +30,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
 
     }
 
+    @Override
     public Ast visitProgram(NottscriptParser.ProgramContext ctx) {
         Ast.BlockList blockList = new Ast.BlockList();
         for(NottscriptParser.BlockContext blockContext : ctx.block()){
@@ -38,5 +39,20 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
             blockList.add(elem);
         }
         return blockList;
+    }
+    @Override
+    public Ast visitProgramBlock(NottscriptParser.ProgramBlockContext ctx) {
+        Ast.ProgramBlock block = new Ast.ProgramBlock();
+        NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom(0);
+        Ast fnElem = visit(openNameContext);
+        block.add(fnElem);
+        for(NottscriptParser.DeclarationContext declarationContext : ctx.declaration()){
+            block.add(visit(declarationContext));
+        }
+        for(NottscriptParser.StatementContext statementContext : ctx.statement()){
+            block.add(visit(statementContext));
+        }
+        NottscriptParser.NameAtomContext closeNameContext = ctx.nameAtom(1);
+        return block;
     }
 }
