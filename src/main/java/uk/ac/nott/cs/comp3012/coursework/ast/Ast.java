@@ -52,6 +52,14 @@ public interface Ast {
 
         }
     }
+    class CustomTypeSpec extends ArrayList <Ast> implements Ast {
+        public CustomTypeSpec() {super();}
+        public CustomTypeSpec(Collection<? extends Ast> elems) {super(elems);}
+    }
+    class InbuiltTypeSpec extends ArrayList <Ast> implements Ast {
+        public InbuiltTypeSpec() {super();}
+        public InbuiltTypeSpec(Collection<? extends Ast> elems) {super(elems);}
+    }
     class IntNum extends ArrayList<Ast> implements Ast {
         public IntNum() {
             super();

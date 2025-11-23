@@ -8,10 +8,12 @@ block: PROGRAM nameAtom declaration* statement* END PROGRAM nameAtom #programBlo
       | TYPE nameAtom declaration+ END TYPE nameAtom #customTypeDeclBlock;
 declaratorParamList: nameAtom (COMMA nameAtom)*;
 //Declarations
-declaration: typeSpecAtom DBLCOL nameAtom (COMMA nameAtom)* #declareVar
-            | typeSpecAtom POINTER DBLCOL nameAtom (COMMA nameAtom)* #declPtr
-            | typeSpecAtom LEFTBRACKET numAtom (COMMA numAtom)* RIGHTBRACKET DBLCOL nameAtom (COMMA nameAtom)* #declArray
-            | typeSpecAtom (LEFTBRACKET star (COMMA star)* RIGHTBRACKET) POINTER DBLCOL nameAtom (COMMA nameAtom)* #declPtrArray;
+declaration: typeSpec DBLCOL nameAtom (COMMA nameAtom)* #declareVar
+            | typeSpec POINTER DBLCOL nameAtom (COMMA nameAtom)* #declPtr
+            | typeSpec LEFTBRACKET numAtom (COMMA numAtom)* RIGHTBRACKET DBLCOL nameAtom (COMMA nameAtom)* #declArray
+            | typeSpec (LEFTBRACKET star (COMMA star)* RIGHTBRACKET) POINTER DBLCOL nameAtom (COMMA nameAtom)* #declPtrArray;
+typeSpec:   typeAtom #inbuilt
+                |TYPE LEFTBRACKET nameAtom RIGHTBRACKET #custom;
 //All the statements
 statement: nameAtom ASSIGN expr #baseAssign
            | array ASSIGN expr #arrayAssign
@@ -54,7 +56,8 @@ basic: (TRUE|FALSE)  #logicSExpr
        | nameAtom      #nameSExpr;//pointers can be read as arrays
 //atoms
 relativeOp: LT|GT|EQ|LEQ|GEQ|NEQ;
-typeSpecAtom: INTEGER | REAL | CHARACTER | LOGICAL | TYPE LEFTBRACKET nameAtom RIGHTBRACKET;
+
+typeAtom: INTEGER | REAL | CHARACTER | LOGICAL;
 logicalOp: AND|OR ;
 mulDivOp: MUL|DIV;
 star: MUL;

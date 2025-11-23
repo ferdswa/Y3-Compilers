@@ -41,6 +41,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         }
         return blockList;
     }
+
+    //Blocks
     @Override
     public Ast visitProgramBlock(NottscriptParser.ProgramBlockContext ctx) {
         Ast.ProgramBlock block = new Ast.ProgramBlock();
@@ -56,10 +58,12 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         block.add(visit(closeNameContext));
         return block;
     }
+
+    //Declarations
     @Override
     public Ast visitDeclareVar(NottscriptParser.DeclareVarContext ctx) {
         Ast.DeclareVariable var = new Ast.DeclareVariable();
-        NottscriptParser.TypeSpecAtomContext typeSpecContext =  ctx.typeSpecAtom();
+        NottscriptParser.TypeSpecContext typeSpecContext =  ctx.typeSpec();
         var.add(visit(typeSpecContext));
         for(NottscriptParser.NameAtomContext nameContext : ctx.nameAtom()){
             var.add(visit(nameContext));
@@ -69,7 +73,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitDeclPtr(NottscriptParser.DeclPtrContext ctx) {
         Ast.DeclarePointer var = new Ast.DeclarePointer();
-        NottscriptParser.TypeSpecAtomContext typeSpecContext =  ctx.typeSpecAtom();
+        NottscriptParser.TypeSpecContext typeSpecContext =  ctx.typeSpec();
         var.add(visit(typeSpecContext));
         for(NottscriptParser.NameAtomContext nameContext : ctx.nameAtom()){
             var.add(visit(nameContext));
@@ -79,7 +83,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitDeclArray(NottscriptParser.DeclArrayContext ctx) {
         Ast.DeclareArray var = new Ast.DeclareArray();
-        NottscriptParser.TypeSpecAtomContext typeSpecContext =  ctx.typeSpecAtom();
+        NottscriptParser.TypeSpecContext typeSpecContext =  ctx.typeSpec();
         var.add(visit(typeSpecContext));
         for(NottscriptParser.NumAtomContext numAtomContext : ctx.numAtom()){
             var.add(visit(numAtomContext));
@@ -92,7 +96,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitDeclPtrArray(NottscriptParser.DeclPtrArrayContext ctx) {
         Ast.DeclarePointerArray var = new Ast.DeclarePointerArray();
-        NottscriptParser.TypeSpecAtomContext typeSpecContext =  ctx.typeSpecAtom();
+        NottscriptParser.TypeSpecContext typeSpecContext =  ctx.typeSpec();
         var.add(visit(typeSpecContext));
         for(NottscriptParser.StarContext pointerArrLen : ctx.star()){
             var.add(visit(pointerArrLen));
@@ -100,6 +104,21 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         for(NottscriptParser.NameAtomContext nameAtomContext : ctx.nameAtom()){
             var.add(visit(nameAtomContext));
         }
+        return var;
+    }
+    //TypeSpecs
+    @Override
+    public Ast visitInbuilt(NottscriptParser.InbuiltContext ctx) {
+        Ast.InbuiltTypeSpec var = new Ast.InbuiltTypeSpec();
+        NottscriptParser.TypeAtomContext type = ctx.typeAtom();
+        var.add(visit(type));
+        return var;
+    }
+    @Override
+    public Ast visitCustom(NottscriptParser.CustomContext ctx){
+        Ast.CustomTypeSpec var = new Ast.CustomTypeSpec();
+        NottscriptParser.NameAtomContext name =  ctx.nameAtom();
+        var.add(visit(name));
         return var;
     }
 }

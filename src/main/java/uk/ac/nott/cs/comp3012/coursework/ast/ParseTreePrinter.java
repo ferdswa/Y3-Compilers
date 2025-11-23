@@ -337,16 +337,6 @@ public class ParseTreePrinter extends NottscriptBaseListener {
         indent -= 2;
     }
     
-    @Override public void enterTypeSpecAtom(NottscriptParser.TypeSpecAtomContext ctx) {
-        printIndent();
-        System.out.println("Type: " + ctx.getText());
-        indent += 2;
-    }
-    
-    @Override public void exitTypeSpecAtom(NottscriptParser.TypeSpecAtomContext ctx) {
-        indent -= 2;
-    }
-    
     @Override public void enterArray(NottscriptParser.ArrayContext ctx) {
         printIndent();
         System.out.println("Begin array");
@@ -589,11 +579,35 @@ public class ParseTreePrinter extends NottscriptBaseListener {
         System.out.printf("Number: %s%n", ctx.USIGNINT().getText());
     }
 
+    @Override public void enterTypeAtom(NottscriptParser.TypeAtomContext ctx) {
+        printIndent();
+        System.out.printf("Type: %s%n", ctx.getText());
+    }
+
     
     @Override public void enterNameAtom(NottscriptParser.NameAtomContext ctx) {
         printIndent();
         System.out.printf("Name: %s%n", ctx.NAME().getText());
     }
+
+    @Override public void enterInbuilt(NottscriptParser.InbuiltContext ctx) {
+        printIndent();
+        System.out.println("Begin Inbuilt Type Spec");
+        indent += 2;
+    }
+
+    @Override public void exitInbuilt(NottscriptParser.InbuiltContext ctx) {
+        indent -= 2;
+    }
+
+    @Override public void enterCustom(NottscriptParser.CustomContext ctx) {
+        printIndent();
+        System.out.println("Enter Custom Type Spec");
+        indent += 2;
+    }
+
+
+
     @Override public void enterEveryRule(ParserRuleContext ctx) { }
 
     @Override public void exitEveryRule(ParserRuleContext ctx) { }
