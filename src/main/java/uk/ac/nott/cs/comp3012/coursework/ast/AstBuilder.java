@@ -1,6 +1,5 @@
 package uk.ac.nott.cs.comp3012.coursework.ast;
 
-import com.ibm.icu.text.SymbolTable;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
@@ -8,7 +7,6 @@ import uk.ac.nott.cs.comp3012.coursework.NottscriptBaseVisitor;
 import uk.ac.nott.cs.comp3012.coursework.NottscriptLexer;
 import uk.ac.nott.cs.comp3012.coursework.NottscriptParser;
 
-import java.security.PublicKey;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -260,6 +258,111 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
             doWhile.add(visit(statement));
         }
         return doWhile;
+    }
+    @Override
+    public Ast visitReadParam(NottscriptParser.ReadParamContext ctx) {
+        Ast.ReadParam readParam = new Ast.ReadParam();
+        NottscriptParser.NameAtomContext name =  ctx.nameAtom();
+        if(name!=null){
+            readParam.add(visit(name));
+        }
+        else{
+            NottscriptParser.ArrayContext array = ctx.array();
+            readParam.add(visit(array));
+        }
+        return readParam;
+    }
+    @Override
+    public Ast visitRead(NottscriptParser.ReadContext ctx) {
+        Ast.Read read = new Ast.Read();
+        for(NottscriptParser.ReadParamContext readParamContext : ctx.readParam()){
+            read.add(visit(readParamContext));
+        }
+        return read;
+    }
+    @Override
+    public Ast visitWrite(NottscriptParser.WriteContext ctx) {
+        Ast.Write write = new Ast.Write();
+        for(NottscriptParser.ExprContext expr : ctx.expr()){
+            write.add(visit(expr));
+        }
+        return write;
+    }
+    @Override
+    public Ast visitAllocPtr(NottscriptParser.AllocPtrContext ctx) {
+        Ast.AllocPtr allocPtr = new Ast.AllocPtr();
+        NottscriptParser.NameAtomContext name = ctx.nameAtom();
+        allocPtr.add(visit(name));
+        return allocPtr;
+    }
+    @Override
+    public Ast visitAllocPtrArray(NottscriptParser.AllocPtrArrayContext ctx) {
+        Ast.AllocPtrArray allocPtrArray = new Ast.AllocPtrArray();
+        NottscriptParser.NameAtomContext name = ctx.nameAtom();
+        allocPtrArray.add(visit(name));
+        NottscriptParser.ArrayIndexContext arrayIndex = ctx.arrayIndex();
+        allocPtrArray.add(visit(arrayIndex));
+        return allocPtrArray;
+    }
+    @Override
+    public Ast visitDeallocPtr(NottscriptParser.DeallocPtrContext ctx) {
+        Ast.DeallocPtr deallocPtr = new Ast.DeallocPtr();
+        NottscriptParser.NameAtomContext name = ctx.nameAtom();
+        deallocPtr.add(visit(name));
+        return deallocPtr;
+    }
+    @Override
+    public Ast visitFuncCall(NottscriptParser.FuncCallContext ctx) {
+        Ast.FuncCall funcCall = new Ast.FuncCall();
+        NottscriptParser.NameAtomContext name = ctx.nameAtom();
+        funcCall.add(visit(name));
+        NottscriptParser.ParamListContext paramList = ctx.paramList();
+        funcCall.add(visit(paramList));
+        return funcCall;
+    }
+    @Override
+    public Ast visitArray(NottscriptParser.ArrayContext ctx) {
+        Ast.ArrayDef arrayDef = new Ast.ArrayDef();
+        NottscriptParser.NameAtomContext name = ctx.nameAtom();
+        arrayDef.add(visit(name));
+        for(NottscriptParser.ArrayIndexContext arrayIndexContext : ctx.arrayIndex()){
+            arrayDef.add(visit(arrayIndexContext));
+        }
+        return  arrayDef;
+    }
+    @Override
+    public Ast visitArrayIndex(NottscriptParser.ArrayIndexContext ctx) {
+        Ast.ArrayIndex arrayIndex = new Ast.ArrayIndex();
+        NottscriptParser.NameAtomContext name = ctx.nameAtom();
+        if(name!=null){
+            arrayIndex.add(visit(name));
+        }
+        else{
+            NottscriptParser.NumAtomContext num = ctx.numAtom();
+            arrayIndex.add(visit(num));
+        }
+        return arrayIndex;
+    }
+    @Override
+    public Ast visitParamSubList(NottscriptParser.ParamSubListContext ctx) {
+        Ast.ParamSubList paramSubList = new Ast.ParamSubList();
+        NottscriptParser.NameAtomContext name = ctx.nameAtom();
+        if(name!=null){
+            paramSubList.add(visit(name));
+        }
+        else{
+            NottscriptParser.ExprContext expr = ctx.expr();
+            paramSubList.add(visit(expr));
+        }
+        return paramSubList;
+    }
+    @Override
+    public Ast visitParamList(NottscriptParser.ParamListContext ctx) {
+        Ast.ParamList paramList = new Ast.ParamList();
+        for(NottscriptParser.ParamSubListContext psl: ctx.paramSubList()){
+            paramList.add(visit(psl));
+        }
+        return paramList;
     }
 
 }

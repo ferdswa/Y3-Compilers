@@ -216,6 +216,26 @@ public interface Ast {
             super(elems);
         }
     }
+    class ReadParam extends ArrayList<Ast> implements Ast {
+        public ReadParam() {
+            super();
+        }
+        public ReadParam(Collection<? extends Ast> elems) {
+            super(elems);
+        }
+    }
+    class ArrayIndex extends ArrayList<Ast> implements Ast {
+        public ArrayIndex() {super();}
+        public ArrayIndex(Collection<? extends Ast> elems) {super(elems);}
+    }
+    class ParamSubList extends ArrayList<Ast> implements Ast {
+        public ParamSubList() {
+            super();
+        }
+        public ParamSubList(Collection<? extends Ast> elems) {
+            super(elems);
+        }
+    }
     class DoWhile extends ArrayList<Ast> implements Ast {
         public DoWhile() {
             super();

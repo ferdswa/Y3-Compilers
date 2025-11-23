@@ -26,17 +26,20 @@ statement: nameAtom ASSIGN expr #baseAssign
            | DO nameAtom ASSIGN doParam COMMA doParam COMMA doParam statement+ END DO #doIncrN1
            | DO nameAtom ASSIGN doParam COMMA doParam statement+ END DO #doIncr1
            | DO WHILE LEFTBRACKET expr RIGHTBRACKET statement+ END DO #doWhile
-           | READ (nameAtom|array) (COMMA (nameAtom|array))* #read
+           | READ readParam (COMMA readParam)* #read
            | WRITE expr (COMMA expr)* #write
            | ALLOCATE nameAtom #allocPtr
-           | ALLOCATE nameAtom COMMA (USIGNINT|nameAtom) #allocPtrArray
+           | ALLOCATE nameAtom COMMA arrayIndex #allocPtrArray
            | DEALLOCATE nameAtom #deallocPtr
            | nameAtom LEFTBRACKET paramList? RIGHTBRACKET #funcCall;
 
-elseStmt: ELSE statement+;
-doParam: (intnum|nameAtom);
-array: nameAtom LEFTBRACKET (numAtom|nameAtom) (COMMA (numAtom|nameAtom))* RIGHTBRACKET;
-paramList: (nameAtom|expr) (COMMA (nameAtom|expr))*;
+elseStmt: ELSE statement+;//Done
+doParam: (intnum|nameAtom);//Done
+readParam: (nameAtom|array);//Done
+arrayIndex: (numAtom|nameAtom);//Done
+array: nameAtom LEFTBRACKET arrayIndex (COMMA arrayIndex)* RIGHTBRACKET;
+paramSubList: (nameAtom|expr);
+paramList: paramSubList (COMMA paramSubList)*;
 //Expressions - ordered in inverse precedence
 expr: logExpr;
 logExpr: relExpr(logicalOp relExpr)*;
