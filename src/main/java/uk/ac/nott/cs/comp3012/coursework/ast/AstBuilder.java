@@ -8,6 +8,7 @@ import uk.ac.nott.cs.comp3012.coursework.NottscriptBaseVisitor;
 import uk.ac.nott.cs.comp3012.coursework.NottscriptLexer;
 import uk.ac.nott.cs.comp3012.coursework.NottscriptParser;
 
+import java.security.PublicKey;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -49,9 +50,11 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom(0);
         block.add(visit(openNameContext));
         for(NottscriptParser.DeclarationContext declarationContext : ctx.declaration()){
+            System.out.println("Decl Found: "+declarationContext.getText());
             block.add(visit(declarationContext));
         }
         for(NottscriptParser.StatementContext statementContext : ctx.statement()){
+            System.out.println("Stmt Found: "+statementContext.getText());
             block.add(visit(statementContext));
         }
         NottscriptParser.NameAtomContext closeNameContext = ctx.nameAtom(1);
@@ -119,6 +122,46 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         Ast.CustomTypeSpec var = new Ast.CustomTypeSpec();
         NottscriptParser.NameAtomContext name =  ctx.nameAtom();
         var.add(visit(name));
+        return var;
+    }
+    //Statements
+    @Override
+    public Ast visitBaseAssign(NottscriptParser.BaseAssignContext ctx) {
+        Ast.NormalAssign var = new Ast.NormalAssign();
+        NottscriptParser.NameAtomContext name =  ctx.nameAtom();
+        var.add(visit(name));
+        NottscriptParser.ExprContext expr = ctx.expr();
+        var.add(visit(expr));
+        return var;
+    }
+    @Override
+    public Ast visitArrayAssign(NottscriptParser.ArrayAssignContext ctx) {
+        Ast.ArrayAssign var = new Ast.ArrayAssign();
+        NottscriptParser.ArrayContext array = ctx.array();
+        var.add(visit(array));
+        NottscriptParser.ExprContext expr = ctx.expr();
+        var.add(visit(expr));
+        return var;
+    }
+    @Override
+    public Ast visitCtArrayAssign(NottscriptParser.CtArrayAssignContext ctx){
+        Ast.CustomTypeArrayAssign var = new Ast.CustomTypeArrayAssign();
+        NottscriptParser.NameAtomContext name =  ctx.nameAtom();
+        var.add(visit(name));
+        NottscriptParser.ArrayContext array = ctx.array();
+        var.add(visit(array));
+        NottscriptParser.ExprContext expr = ctx.expr();
+        var.add(visit(expr));
+        return var;
+    }
+    @Override
+    public Ast visitCtAssign(NottscriptParser.CtAssignContext ctx){
+        Ast.CustomTypeAssign var = new Ast.CustomTypeAssign();
+        for(NottscriptParser.NameAtomContext name : ctx.nameAtom()){
+            var.add(visit(name));
+        }
+        NottscriptParser.ExprContext expr = ctx.expr();
+        var.add(visit(expr));
         return var;
     }
 }
