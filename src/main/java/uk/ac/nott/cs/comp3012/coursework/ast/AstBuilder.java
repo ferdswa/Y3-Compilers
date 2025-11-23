@@ -27,6 +27,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         Set<String> symbols = new HashSet<>();
         AstBuilder astBuilder = new AstBuilder(symbols);
         Ast.BlockList blockList = (Ast.BlockList) astBuilder.visitProgram(px.program());
+        System.out.println(blockList);
 
     }
 
@@ -44,8 +45,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     public Ast visitProgramBlock(NottscriptParser.ProgramBlockContext ctx) {
         Ast.ProgramBlock block = new Ast.ProgramBlock();
         NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom(0);
-        Ast fnElem = visit(openNameContext);
-        block.add(fnElem);
+        block.add(visit(openNameContext));
         for(NottscriptParser.DeclarationContext declarationContext : ctx.declaration()){
             block.add(visit(declarationContext));
         }
@@ -53,6 +53,53 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
             block.add(visit(statementContext));
         }
         NottscriptParser.NameAtomContext closeNameContext = ctx.nameAtom(1);
+        block.add(visit(closeNameContext));
         return block;
+    }
+    @Override
+    public Ast visitDeclareVar(NottscriptParser.DeclareVarContext ctx) {
+        Ast.DeclareVariable var = new Ast.DeclareVariable();
+        NottscriptParser.TypeSpecAtomContext typeSpecContext =  ctx.typeSpecAtom();
+        var.add(visit(typeSpecContext));
+        for(NottscriptParser.NameAtomContext nameContext : ctx.nameAtom()){
+            var.add(visit(nameContext));
+        }
+        return var;
+    }
+    @Override
+    public Ast visitDeclPtr(NottscriptParser.DeclPtrContext ctx) {
+        Ast.DeclarePointer var = new Ast.DeclarePointer();
+        NottscriptParser.TypeSpecAtomContext typeSpecContext =  ctx.typeSpecAtom();
+        var.add(visit(typeSpecContext));
+        for(NottscriptParser.NameAtomContext nameContext : ctx.nameAtom()){
+            var.add(visit(nameContext));
+        }
+        return var;
+    }
+    @Override
+    public Ast visitDeclArray(NottscriptParser.DeclArrayContext ctx) {
+        Ast.DeclareArray var = new Ast.DeclareArray();
+        NottscriptParser.TypeSpecAtomContext typeSpecContext =  ctx.typeSpecAtom();
+        var.add(visit(typeSpecContext));
+        for(NottscriptParser.NumAtomContext numAtomContext : ctx.numAtom()){
+            var.add(visit(numAtomContext));
+        }
+        for(NottscriptParser.NameAtomContext nameContext : ctx.nameAtom()){
+            var.add(visit(nameContext));
+        }
+        return var;
+    }
+    @Override
+    public Ast visitDeclPtrArray(NottscriptParser.DeclPtrArrayContext ctx) {
+        Ast.DeclarePointerArray var = new Ast.DeclarePointerArray();
+        NottscriptParser.TypeSpecAtomContext typeSpecContext =  ctx.typeSpecAtom();
+        var.add(visit(typeSpecContext));
+        for(NottscriptParser.StarContext pointerArrLen : ctx.star()){
+            var.add(visit(pointerArrLen));
+        }
+        for(NottscriptParser.NameAtomContext nameAtomContext : ctx.nameAtom()){
+            var.add(visit(nameAtomContext));
+        }
+        return var;
     }
 }

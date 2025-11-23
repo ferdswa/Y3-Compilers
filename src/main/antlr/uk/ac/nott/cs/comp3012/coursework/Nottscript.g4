@@ -8,10 +8,10 @@ block: PROGRAM nameAtom declaration* statement* END PROGRAM nameAtom #programBlo
       | TYPE nameAtom declaration+ END TYPE nameAtom #customTypeDeclBlock;
 declaratorParamList: nameAtom (COMMA nameAtom)*;
 //Declarations
-declaration: typeSpec DBLCOL nameAtom (COMMA nameAtom)* #declareVar
-            | typeSpec POINTER DBLCOL nameAtom (COMMA nameAtom)* #declPtr
-            | typeSpec LEFTBRACKET numAtom (COMMA numAtom)* RIGHTBRACKET DBLCOL nameAtom (COMMA nameAtom)* #declArray
-            | typeSpec (LEFTBRACKET '*' (COMMA '*')* RIGHTBRACKET) POINTER DBLCOL nameAtom (COMMA nameAtom)* #declPtrArray;
+declaration: typeSpecAtom DBLCOL nameAtom (COMMA nameAtom)* #declareVar
+            | typeSpecAtom POINTER DBLCOL nameAtom (COMMA nameAtom)* #declPtr
+            | typeSpecAtom LEFTBRACKET numAtom (COMMA numAtom)* RIGHTBRACKET DBLCOL nameAtom (COMMA nameAtom)* #declArray
+            | typeSpecAtom (LEFTBRACKET star (COMMA star)* RIGHTBRACKET) POINTER DBLCOL nameAtom (COMMA nameAtom)* #declPtrArray;
 //All the statements
 statement: nameAtom ASSIGN expr #baseAssign
            | array ASSIGN expr #arrayAssign
@@ -30,7 +30,7 @@ statement: nameAtom ASSIGN expr #baseAssign
            | ALLOCATE nameAtom COMMA (USIGNINT|nameAtom) #allocPtrArray
            | DEALLOCATE nameAtom #deallocPtr
            | nameAtom LEFTBRACKET paramList? RIGHTBRACKET #funcCall;
-typeSpec: INTEGER | REAL | CHARACTER | LOGICAL | TYPE LEFTBRACKET nameAtom RIGHTBRACKET;
+
 array: nameAtom LEFTBRACKET (numAtom|nameAtom) (COMMA (numAtom|nameAtom))* RIGHTBRACKET;
 paramList: (nameAtom|expr) (COMMA (nameAtom|expr))*;
 //Expressions - ordered in inverse precedence
@@ -54,8 +54,10 @@ basic: (TRUE|FALSE)  #logicSExpr
        | nameAtom      #nameSExpr;//pointers can be read as arrays
 //atoms
 relativeOp: LT|GT|EQ|LEQ|GEQ|NEQ;
+typeSpecAtom: INTEGER | REAL | CHARACTER | LOGICAL | TYPE LEFTBRACKET nameAtom RIGHTBRACKET;
 logicalOp: AND|OR ;
 mulDivOp: MUL|DIV;
+star: MUL;
 addSubOp: PLUS|MINUS;
 intnum: addSubOp? numAtom;
 numAtom: USIGNINT;

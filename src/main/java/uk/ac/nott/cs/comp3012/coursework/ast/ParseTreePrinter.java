@@ -337,13 +337,13 @@ public class ParseTreePrinter extends NottscriptBaseListener {
         indent -= 2;
     }
     
-    @Override public void enterTypeSpec(NottscriptParser.TypeSpecContext ctx) {
+    @Override public void enterTypeSpecAtom(NottscriptParser.TypeSpecAtomContext ctx) {
         printIndent();
         System.out.println("Type: " + ctx.getText());
         indent += 2;
     }
     
-    @Override public void exitTypeSpec(NottscriptParser.TypeSpecContext ctx) {
+    @Override public void exitTypeSpecAtom(NottscriptParser.TypeSpecAtomContext ctx) {
         indent -= 2;
     }
     

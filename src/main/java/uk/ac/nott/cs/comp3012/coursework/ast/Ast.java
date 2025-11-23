@@ -44,6 +44,9 @@ public interface Ast {
         record relAtom(String r) implements Atom {
 
         }
+        record starAtom(char c) implements Atom {
+
+        }
         //types (Called typeSpec)
         record typeAtom(String t) implements Atom {
 
