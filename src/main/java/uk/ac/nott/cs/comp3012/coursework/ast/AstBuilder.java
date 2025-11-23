@@ -365,4 +365,78 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         return paramList;
     }
 
+    //Expressions
+    @Override
+    public Ast visitExpr(NottscriptParser.ExprContext ctx) {
+        Ast.Expr expr = new Ast.Expr();
+        NottscriptParser.LogExprContext logExpr = ctx.logExpr();
+        expr.add(visit(logExpr));
+        return expr;
+    }
+    @Override
+    public Ast visitLogExpr(NottscriptParser.LogExprContext ctx) {
+        Ast.LogExpr logExpr = new Ast.LogExpr();
+        for(NottscriptParser.RelExprContext relExpr: ctx.relExpr()){
+            logExpr.add(visit(relExpr));
+        }
+        for(NottscriptParser.LogicalOpContext logicalOp: ctx.logicalOp()){
+            logExpr.add(visit(logicalOp));
+        }
+        return logExpr;
+    }
+    @Override
+    public Ast visitRelExpr(NottscriptParser.RelExprContext ctx) {
+        Ast.RelExpr relExpr = new Ast.RelExpr();
+        for(NottscriptParser.ConcatExprContext concatExpr: ctx.concatExpr()){
+            relExpr.add(visit(concatExpr));
+        }
+        for(NottscriptParser.RelativeOpContext relativeOp: ctx.relativeOp()){
+            relExpr.add(visit(relativeOp));
+        }
+        return relExpr;
+    }
+    @Override
+    public Ast visitConcatExpr(NottscriptParser.ConcatExprContext ctx) {
+        Ast.ConcatExpr concatExpr = new Ast.ConcatExpr();
+        for(NottscriptParser.AddSubExprContext addSubExpr: ctx.addSubExpr()){
+            concatExpr.add(visit(addSubExpr));
+        }
+        return concatExpr;
+    }
+    @Override
+    public Ast visitAddSubExpr(NottscriptParser.AddSubExprContext ctx) {
+        Ast.AddSubExpr addSubExpr = new Ast.AddSubExpr();
+        for(NottscriptParser.MulDivExprContext mulDivOpContext: ctx.mulDivExpr()){
+            addSubExpr.add(visit(mulDivOpContext));
+        }
+        for(NottscriptParser.AddSubOpContext addSubOpContext: ctx.addSubOp()){
+            addSubExpr.add(visit(addSubOpContext));
+        }
+        return addSubExpr;
+    }
+    @Override
+    public Ast visitMulDivExpr(NottscriptParser.MulDivExprContext ctx) {
+        Ast.MulDivExpr mulDivExpr = new Ast.MulDivExpr();
+        for(NottscriptParser.PowExprContext powExprContext: ctx.powExpr()){
+            mulDivExpr.add(visit(powExprContext));
+        }
+        return mulDivExpr;
+    }
+    @Override
+    public Ast visitPowExpr(NottscriptParser.PowExprContext ctx) {
+        Ast.PowExpr powExpr = new Ast.PowExpr();
+        for(NottscriptParser.FieldAccExprContext fieldAccExprContext: ctx.fieldAccExpr()){
+            powExpr.add(visit(fieldAccExprContext));
+        }
+        return powExpr;
+    }
+    @Override
+    public Ast visitFieldAccExpr(NottscriptParser.FieldAccExprContext ctx) {
+        Ast.FieldAccessExpr  fieldAccessExpr = new Ast.FieldAccessExpr();
+        for(NottscriptParser.BasicContext basicContext: ctx.basic()){
+            fieldAccessExpr.add(visit(basicContext));
+        }
+        return fieldAccessExpr;
+    }
+
 }

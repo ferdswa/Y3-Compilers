@@ -309,6 +309,17 @@ public class ParseTreePrinter extends NottscriptBaseListener {
     @Override public void exitRead(NottscriptParser.ReadContext ctx) {
         indent -= 2;
     }
+
+    @Override public void enterReadParam(NottscriptParser.ReadParamContext ctx) {
+        printIndent();
+        System.out.println("Begin read param");
+        indent += 2;
+    }
+    @Override public void exitReadParam(NottscriptParser.ReadParamContext ctx) {
+        printIndent();
+        System.out.println("End read param");
+        indent -= 2;
+    }
     
     @Override public void enterWrite(NottscriptParser.WriteContext ctx) {
         printIndent();
