@@ -439,7 +439,7 @@ public interface Ast {
         }
     }
     //Program is a list of blocks
-    class BlockList  extends ArrayList<Ast> implements Ast {
+    final class BlockList extends ArrayList<Ast> implements Ast {
         public BlockList() {
             super();
         }
