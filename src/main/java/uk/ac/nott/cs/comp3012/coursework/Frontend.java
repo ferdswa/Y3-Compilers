@@ -17,8 +17,9 @@ public class Frontend {
         HashMapTable<Object,Object,Object> symbolTable = new HashMapTable<>();
         AstBuilder astBuilder = new AstBuilder();
         Ast code = astBuilder.buildAst(input);
-        System.out.println(code.toString());
-        
+        //System.out.println(code.toString());
+
+
 //        ParseTreeWalker walker = new ParseTreeWalker();
 //        ParseTreePrinter printer = new ParseTreePrinter();
 //        walker.walk(printer, px.program());

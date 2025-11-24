@@ -6,36 +6,53 @@ import org.antlr.v4.runtime.TokenStream;
 import uk.ac.nott.cs.comp3012.coursework.NottscriptBaseVisitor;
 import uk.ac.nott.cs.comp3012.coursework.NottscriptLexer;
 import uk.ac.nott.cs.comp3012.coursework.NottscriptParser;
+import uk.ac.nott.cs.comp3012.coursework.util.SymbolData;
 import uk.ac.nott.cs.comp3012.coursework.util.SymbolTable;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Objects;
 
 
 public class AstBuilder extends NottscriptBaseVisitor<Ast>
 {
-    private final SymbolTable allProgramSymbols = new SymbolTable();
+    private SymbolTable allProgramSymbols =new SymbolTable();
+    private LinkedHashSet<SymbolData> allProgramSymbolsTable =new LinkedHashSet<>();
 
     public AstBuilder() {
     }
 
     public SymbolTable getSymbols() {
-        return allProgramSymbols;
+        return this.allProgramSymbols;
     }
 
     public Ast buildAst(String inputFile) {
         NottscriptLexer lx = new NottscriptLexer(CharStreams.fromString(inputFile));
         TokenStream tokens = new CommonTokenStream(lx);
         NottscriptParser px = new NottscriptParser(tokens);
-        AstBuilder astBuilder = new AstBuilder();
+        AstBuilder astBuilder = this;
         Ast.BlockList blockList = (Ast.BlockList) astBuilder.visitProgram(px.program());
-        for(Ast ast : blockList){
-            return ast;
+        for(int i = 0; i < allProgramSymbolsTable.size(); i++){
+            System.out.println(allProgramSymbolsTable.toArray()[i]);
         }
-        return null;
+        blockList.forEach( block-> {
+            switch (block.getClass().getSimpleName()){
+                case "ProgramBlock":
+                    Ast.ProgramBlock programBlock = (Ast.ProgramBlock) block;
+                    programBlock.forEach( astBlock  -> {
+
+                    });
+                    break;
+            }
+        });
+
+        return blockList;
     }
 
     @Override
-    public Ast visitProgram(NottscriptParser.ProgramContext ctx) {
+    public Ast visitProgram(NottscriptParser.ProgramContext ctx) {//Depth 1, allProgramSymbols depth = 0
         Ast.BlockList blockList = new Ast.BlockList();
         for(NottscriptParser.BlockContext blockContext : ctx.block()){
             Ast elem = visit(blockContext);
@@ -50,6 +67,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         Ast.ProgramBlock block = new Ast.ProgramBlock();
         NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom(0);
         Ast elem = visit(openNameContext);
+        this.allProgramSymbolsTable.add(new SymbolData("program","kwd","startProgram"));
         block.add(elem);
         for(NottscriptParser.DeclarationContext declarationContext : ctx.declaration()){
             block.add(visit(declarationContext));
@@ -59,7 +77,28 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         }
         NottscriptParser.NameAtomContext closeNameContext = ctx.nameAtom(1);
         block.add(visit(closeNameContext));
+        this.allProgramSymbolsTable.add(new SymbolData("program","kwd","endProgram"));
         return block;
+    }
+
+    @Override
+    public Ast visitReturnFuncBlock(NottscriptParser.ReturnFuncBlockContext ctx) {
+        this.allProgramSymbolsTable.add(new SymbolData("startFuncReturning","kwd"));
+        Ast.ReturnFuncBlock block = new Ast.ReturnFuncBlock();
+        NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom(0);
+        Ast elem = visit(openNameContext);
+        block.add(elem);
+        for(NottscriptParser.DeclarationContext declarationContext : ctx.declaration()){
+            block.add(visit(declarationContext));
+        }
+        for(NottscriptParser.StatementContext statementContext : ctx.statement()){
+            block.add(visit(statementContext));
+        }
+        NottscriptParser.NameAtomContext closeNameContext = ctx.nameAtom(1);
+        this.allProgramSymbolsTable.add(new SymbolData("endFuncReturning","kwd"));
+        block.add(visit(closeNameContext));
+        return block;
+
     }
 
     //Declarations
@@ -73,7 +112,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
             Ast name =  visit(nameContext);
             var.add(name);
         }
-
+        this.allProgramSymbolsTable.add(new SymbolData("declareVar","kwd"));
         return var;
     }
     @Override
@@ -115,10 +154,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     //TypeSpecs
     @Override
     public Ast visitInbuilt(NottscriptParser.InbuiltContext ctx) {
-        Ast.InbuiltTypeSpec inbuiltTypeSpec = new Ast.InbuiltTypeSpec();
-        NottscriptParser.TypeAtomContext type = ctx.typeAtom();
-        inbuiltTypeSpec.add(visit(type));
-        return inbuiltTypeSpec;
+        this.allProgramSymbolsTable.add(new SymbolData("type","kwd"));
+        return new Ast.Atom.typeAtom(ctx.typeAtom().getText());
     }
     @Override
     public Ast visitCustom(NottscriptParser.CustomContext ctx){
@@ -135,6 +172,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         normalAssign.add(visit(name));
         NottscriptParser.ExprContext expr = ctx.expr();
         normalAssign.add(visit(expr));
+        this.allProgramSymbolsTable.add(new SymbolData("assign","kwd"));
         return normalAssign;
     }
     @Override
@@ -144,6 +182,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         arrayAssign.add(visit(array));
         NottscriptParser.ExprContext expr = ctx.expr();
         arrayAssign.add(visit(expr));
+        this.allProgramSymbolsTable.add(new SymbolData("assign","kwd"));
         return arrayAssign;
     }
     @Override
@@ -181,9 +220,11 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         Ast.IfBlock ifBlock = new Ast.IfBlock();
         NottscriptParser.ExprContext expr = ctx.expr();
         ifBlock.add(visit(expr));
+        this.allProgramSymbolsTable.add(new SymbolData("ifcond","kwd"));
         for(NottscriptParser.StatementContext statement : ctx.statement()){
             ifBlock.add(visit(statement));
         }
+        this.allProgramSymbolsTable.add(new SymbolData("then","kwd"));
         return ifBlock;
     }
     @Override
@@ -191,9 +232,11 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         Ast.IfElseBlock ifElseBlock = new Ast.IfElseBlock();
         NottscriptParser.ExprContext expr = ctx.expr();
         ifElseBlock.add(visit(expr));
+        this.allProgramSymbolsTable.add(new SymbolData("ifcond","kwd"));
         for(NottscriptParser.StatementContext statement : ctx.statement()){
             ifElseBlock.add(visit(statement));
         }
+        this.allProgramSymbolsTable.add(new SymbolData("then","kwd"));
         NottscriptParser.ElseStmtContext elseStmt = ctx.elseStmt();
         ifElseBlock.add(visit(elseStmt));
         return ifElseBlock;
@@ -204,6 +247,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         for(NottscriptParser.StatementContext statement : ctx.statement()){
             elseStmt.add(visit(statement));
         }
+        this.allProgramSymbolsTable.add(new SymbolData("else","kwd"));
         return elseStmt;
     }
     @Override
@@ -211,8 +255,10 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         Ast.IfStatement ifStatement = new Ast.IfStatement();
         NottscriptParser.ExprContext expr = ctx.expr();
         ifStatement.add(visit(expr));
+        this.allProgramSymbolsTable.add(new SymbolData("ifcond","kwd"));
         NottscriptParser.StatementContext statement = ctx.statement();
         ifStatement.add(visit(statement));
+        this.allProgramSymbolsTable.add(new SymbolData("then","kwd"));
         return ifStatement;
     }
     @Override
@@ -279,6 +325,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         for(NottscriptParser.ReadParamContext readParamContext : ctx.readParam()){
             read.add(visit(readParamContext));
         }
+        this.allProgramSymbolsTable.add(new SymbolData("read","kwd"));
         return read;
     }
     @Override
@@ -287,6 +334,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         for(NottscriptParser.ExprContext expr : ctx.expr()){
             write.add(visit(expr));
         }
+        this.allProgramSymbolsTable.add(new SymbolData("write","kwd"));
         return write;
     }
     @Override
@@ -380,19 +428,27 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         for(NottscriptParser.RelExprContext relExpr: ctx.relExpr()){
             logExpr.add(visit(relExpr));
         }
-        for(NottscriptParser.LogicalOpContext logicalOp: ctx.logicalOp()){
-            logExpr.add(visit(logicalOp));
+        if(ctx.getText().contains(".true.")||ctx.getText().contains(".false.")){
+            for(NottscriptParser.LogicalOpContext logicalOp: ctx.logicalOp()){
+                logExpr.add(visit(logicalOp));
+            }
+            this.allProgramSymbolsTable.add(new SymbolData("logExpr","expr"));
         }
         return logExpr;
     }
     @Override
     public Ast visitRelExpr(NottscriptParser.RelExprContext ctx) {
         Ast.RelExpr relExpr = new Ast.RelExpr();
+        int i =0;
         for(NottscriptParser.ConcatExprContext concatExpr: ctx.concatExpr()){
             relExpr.add(visit(concatExpr));
         }
         for(NottscriptParser.RelativeOpContext relativeOp: ctx.relativeOp()){
             relExpr.add(visit(relativeOp));
+            i++;
+        }
+        if(i>0){
+            this.allProgramSymbolsTable.add(new SymbolData("relExpr","expr"));
         }
         return relExpr;
     }
@@ -402,27 +458,41 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         for(NottscriptParser.AddSubExprContext addSubExpr: ctx.addSubExpr()){
             concatExpr.add(visit(addSubExpr));
         }
+        if(ctx.getText().contains("//")){
+            this.allProgramSymbolsTable.add(new SymbolData("concatExpr","expr"));
+        }
         return concatExpr;
     }
     @Override
     public Ast visitAddSubExpr(NottscriptParser.AddSubExprContext ctx) {
         Ast.AddSubExpr addSubExpr = new Ast.AddSubExpr();
-        for(NottscriptParser.MulDivExprContext mulDivOpContext: ctx.mulDivExpr()){
-            addSubExpr.add(visit(mulDivOpContext));
+        int i =0;
+        for(NottscriptParser.MulDivExprContext mulDivExprContext: ctx.mulDivExpr()){
+            addSubExpr.add(visit(mulDivExprContext));
         }
         for(NottscriptParser.AddSubOpContext addSubOpContext: ctx.addSubOp()){
             addSubExpr.add(visit(addSubOpContext));
+            i++;
         }
+        if(i>0){
+            this.allProgramSymbolsTable.add(new SymbolData("addSubExpr","expr"));
+        }
+
         return addSubExpr;
     }
     @Override
     public Ast visitMulDivExpr(NottscriptParser.MulDivExprContext ctx) {
+        int i=0;
         Ast.MulDivExpr mulDivExpr = new Ast.MulDivExpr();
         for(NottscriptParser.PowExprContext powExprContext: ctx.powExpr()){
             mulDivExpr.add(visit(powExprContext));
         }
         for(NottscriptParser.MulDivOpContext mulDivOpContext: ctx.mulDivOp()){
             mulDivExpr.add(visit(mulDivOpContext));
+            i++;
+        }
+        if(i>0){
+            this.allProgramSymbolsTable.add(new SymbolData("mulDivExpr","expr"));
         }
         return mulDivExpr;
     }
@@ -432,6 +502,9 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         for(NottscriptParser.FieldAccExprContext fieldAccExprContext: ctx.fieldAccExpr()){
             powExpr.add(visit(fieldAccExprContext));
         }
+        if(ctx.getText().contains("**")){
+            this.allProgramSymbolsTable.add(new SymbolData("powExpr","expr"));
+        }
         return powExpr;
     }
     @Override
@@ -440,42 +513,51 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         for(NottscriptParser.BasicContext basicContext: ctx.basic()){
             fieldAccessExpr.add(visit(basicContext));
         }
+        if(ctx.getText().contains("%")){
+            this.allProgramSymbolsTable.add(new SymbolData("fieldAccExpr","expr"));
+        }
         return fieldAccessExpr;
     }
     @Override
     public Ast visitLogicSExpr(NottscriptParser.LogicSExprContext ctx) {
         String boolVal = ctx.getText();
+        this.allProgramSymbolsTable.add(new SymbolData("logicSExpr","boolConst",boolVal));
         return new Ast.Atom.boolAtom(boolVal);
     }
     @Override
     public Ast visitHexSExpr(NottscriptParser.HexSExprContext ctx) {
         String hexVal = ctx.getText();
+        this.allProgramSymbolsTable.add(new SymbolData("hexSExpr","hexConst",hexVal));
         return new Ast.Atom.hexNumAtom(hexVal);
     }
     @Override
     public Ast visitRealSExpr(NottscriptParser.RealSExprContext ctx) {
         float realVal = Float.parseFloat(ctx.getText());
+        this.allProgramSymbolsTable.add(new SymbolData("realSExpr","realConst",String.valueOf(realVal)));
         return new Ast.Atom.realAtom(realVal);
     }
     @Override
     public Ast visitBinSExpr(NottscriptParser.BinSExprContext ctx) {
         String binVal = ctx.getText();
+        this.allProgramSymbolsTable.add(new SymbolData("binSExpr","binConst",binVal));
         return new Ast.Atom.binNumAtom(binVal);
     }
     @Override
     public Ast visitCharSeqSExpr(NottscriptParser.CharSeqSExprContext ctx) {
         String charVal = ctx.getText();
+        this.allProgramSymbolsTable.add(new SymbolData("charLiteral","stringConst",charVal));
         return new Ast.Atom.charLiteralAtom(charVal);
     }
     @Override
     public Ast visitIntSExpr(NottscriptParser.IntSExprContext ctx) {
-        Ast.IntSExpr intSExpr = new Ast.IntSExpr();
-        intSExpr.add(visit(ctx.intnum()));
-        return intSExpr;
+        int num = Integer.parseInt(ctx.getText());
+        this.allProgramSymbolsTable.add(new SymbolData("integer","intConst",String.valueOf(num)));
+        return new Ast.Atom.numAtom(num);
     }
     @Override
     public Ast visitExprSExpr(NottscriptParser.ExprSExprContext ctx) {
         Ast.ExprSExpr expr = new Ast.ExprSExpr();
+        this.allProgramSymbolsTable.add(new SymbolData("bracketExpr","expr"));
         expr.add(visit(ctx.expr()));
         return expr;
     }
@@ -483,6 +565,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     public Ast visitArrSExpr(NottscriptParser.ArrSExprContext ctx) {
         Ast.ArrayDef arrayDef = new Ast.ArrayDef();
         arrayDef.add(visit(ctx.array()));
+        //this.allProgramSymbolsTable.add(new SymbolData("arraySExpr","array"));
         return arrayDef;
     }
     @Override
@@ -496,66 +579,77 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     }
     @Override
     public Ast visitNameSExpr(NottscriptParser.NameSExprContext ctx) {
-        Ast.NameSExpr nameSExpr = new Ast.NameSExpr();
-        nameSExpr.add(visit(ctx.nameAtom()));
-        return nameSExpr;
+        String name = ctx.getText();
+        this.allProgramSymbolsTable.add(new SymbolData(name,"NamedVariable",name));
+        return new Ast.Atom.nameAtom(name);
     }
     //Atoms
     @Override
     public Ast visitRelativeOp(NottscriptParser.RelativeOpContext ctx) {
         String op = ctx.getText();
+        this.allProgramSymbolsTable.add(new SymbolData("relOp","operator",op));
         //symbols.add(op);
         return new Ast.Atom.relAtom(op);
     }
     @Override
     public Ast visitTypeAtom(NottscriptParser.TypeAtomContext ctx) {
         String type = ctx.getText();
+        this.allProgramSymbolsTable.add(new SymbolData("type","kwd",type));
         //symbols.add(type);
         return new Ast.Atom.typeAtom(type);
     }
     @Override
     public Ast visitLogicalOp(NottscriptParser.LogicalOpContext ctx) {
         String op = ctx.getText();
+        this.allProgramSymbolsTable.add(new SymbolData("logOp","operator",op));
         //symbols.add(op);
         return new Ast.Atom.logicAtom(op);
     }
     @Override
     public Ast visitMulDivOp(NottscriptParser.MulDivOpContext ctx) {
         String op = ctx.getText();
+        this.allProgramSymbolsTable.add(new SymbolData("mulDivOp","operator",op));
         //symbols.add(op);
         return new Ast.Atom.mulDivAtom(op);
     }
     @Override
     public Ast visitAddSubOp(NottscriptParser.AddSubOpContext ctx) {
         String op = ctx.getText();
+        this.allProgramSymbolsTable.add(new SymbolData("addSubOp","operator",op));
         //symbols.add(op);
         return new Ast.Atom.addSubAtom(op);
     }
     @Override
     public Ast visitStar(NottscriptParser.StarContext ctx) {
         String op = ctx.getText();
+        this.allProgramSymbolsTable.add(new SymbolData("pointerStar","kwd",op));
         //symbols.add(op);
         return new Ast.Atom.starAtom(op);
     }
     @Override
     public Ast visitIntnum(NottscriptParser.IntnumContext ctx) {
-        Ast.IntNum intNum = new Ast.IntNum();
-        NottscriptParser.AddSubOpContext starContext = ctx.addSubOp();
-        if(starContext!=null){
-            intNum.add(visit(starContext));
-        }
-        NottscriptParser.NumAtomContext numAtomContext = ctx.numAtom();
-        intNum.add(visit(numAtomContext));
-        return intNum;
+        //Ast.IntNum intNum = new Ast.IntNum();
+        int num = Integer.parseInt(ctx.getText());
+        this.allProgramSymbolsTable.add(new SymbolData("integer","intConst",String.valueOf(num)));
+        return new Ast.Atom.numAtom(num);
+//        NottscriptParser.AddSubOpContext signContext = ctx.addSubOp();
+//        if(signContext!=null){
+//            intNum.add(visit(signContext));
+//        }
+//        NottscriptParser.NumAtomContext numAtomContext = ctx.numAtom();
+//        intNum.add(visit(numAtomContext));
+//        return intNum;
     }
     @Override
     public Ast visitNumAtom(NottscriptParser.NumAtomContext ctx) {
         int num = Integer.parseInt(ctx.getText());
+        this.allProgramSymbolsTable.add(new SymbolData("integer","intConst",String.valueOf(num)));
         return new Ast.Atom.numAtom(num);
     }
     @Override
     public Ast visitNameAtom(NottscriptParser.NameAtomContext ctx) {
         String name = ctx.getText();
+        this.allProgramSymbolsTable.add(new SymbolData(name,"NamedVariable",name));
         return new Ast.Atom.nameAtom(name);
     }
 }

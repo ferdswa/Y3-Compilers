@@ -7,7 +7,7 @@ import java.util.Collection;
  * Base interface type for all AST classes. Modify it, delete it, or do whatever you want with it.
  */
 public interface Ast {
-    interface Atom extends Ast{
+    sealed interface Atom extends Ast{
         //numbers
         record numAtom(int i) implements Atom {
 
@@ -61,12 +61,13 @@ public interface Ast {
         record nodeAtom(String nodeType) implements Atom {
 
         }
+
     }
-    class CustomTypeSpec extends ArrayList <Ast> implements Ast {
+    class CustomTypeSpec extends ArrayList<Ast> implements Ast {
         public CustomTypeSpec() {super();}
         public CustomTypeSpec(Collection<? extends Ast> elems) {super(elems);}
     }
-    class InbuiltTypeSpec extends ArrayList <Ast> implements Ast {
+    class InbuiltTypeSpec extends ArrayList<Ast> implements Ast {
         public InbuiltTypeSpec() {super();}
         public InbuiltTypeSpec(Collection<? extends Ast> elems) {super(elems);}
     }
