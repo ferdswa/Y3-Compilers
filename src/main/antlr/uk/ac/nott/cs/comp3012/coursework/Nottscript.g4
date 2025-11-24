@@ -61,7 +61,6 @@ basic: (TRUE|FALSE)  #logicSExpr
        | nameAtom      #nameSExpr;//pointers can be read as arrays
 //atoms
 relativeOp: LT|GT|EQ|LEQ|GEQ|NEQ;
-
 typeAtom: INTEGER | REAL | CHARACTER | LOGICAL;
 logicalOp: AND|OR ;
 mulDivOp: MUL|DIV;

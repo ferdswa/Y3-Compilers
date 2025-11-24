@@ -7,7 +7,7 @@ import java.util.Collection;
  * Base interface type for all AST classes. Modify it, delete it, or do whatever you want with it.
  */
 public interface Ast {
-    interface Atom extends Ast{
+    sealed interface Atom extends Ast{
         //numbers
         record numAtom(int i) implements Atom {
 
@@ -21,42 +21,53 @@ public interface Ast {
         record hexNumAtom(String hex) implements Atom {
 
         }
+        record realAtom(float f) implements Atom {
+
+        }
         //character literals
         record charLiteralAtom(String charLiteral) implements Atom {
 
         }
 
         //names
-        record nameAtom(String s) implements Atom {
+        record nameAtom(String name) implements Atom {
 
         }
         //logicals
-        record logicAtom(String l) implements Atom {
+        record logicAtom(String logicVal) implements Atom {
+
+        }
+        record boolAtom(String bool) implements Atom {
 
         }
         //operators
-        record addSubAtom(char c) implements Atom {
+        record addSubAtom(String op) implements Atom {
 
         }
-        record mulDivAtom(char c) implements Atom {
+        record mulDivAtom(String op) implements Atom {
 
         }
-        record relAtom(String r) implements Atom {
+        record relAtom(String relOp) implements Atom {
 
         }
-        record starAtom(char c) implements Atom {
+        record starAtom(String ptrStar) implements Atom {
 
         }
         //types (Called typeSpec)
-        record typeAtom(String t) implements Atom {
+        record typeAtom(String type) implements Atom {
 
         }
+        //statements
+        record nodeAtom(String nodeType) implements Atom {
+
+        }
+
     }
-    class CustomTypeSpec extends ArrayList <Ast> implements Ast {
+    class CustomTypeSpec extends ArrayList<Ast> implements Ast {
         public CustomTypeSpec() {super();}
         public CustomTypeSpec(Collection<? extends Ast> elems) {super(elems);}
     }
-    class InbuiltTypeSpec extends ArrayList <Ast> implements Ast {
+    class InbuiltTypeSpec extends ArrayList<Ast> implements Ast {
         public InbuiltTypeSpec() {super();}
         public InbuiltTypeSpec(Collection<? extends Ast> elems) {super(elems);}
     }
@@ -92,6 +103,24 @@ public interface Ast {
             super();
         }
         public FuncSExpr(Collection<? extends Ast> elems) {
+            super(elems);
+        }
+    }
+
+    class IntSExpr extends ArrayList<Ast> implements Ast {
+        public IntSExpr() {
+            super();
+        }
+        public IntSExpr(Collection<? extends Ast> elems) {
+            super(elems);
+        }
+    }
+
+    class NameSExpr extends ArrayList<Ast> implements Ast {
+        public NameSExpr() {
+            super();
+        }
+        public NameSExpr(Collection<? extends Ast> elems) {
             super(elems);
         }
     }
@@ -410,7 +439,7 @@ public interface Ast {
         }
     }
     //Program is a list of blocks
-    class BlockList  extends ArrayList<Ast> implements Ast {
+    final class BlockList extends ArrayList<Ast> implements Ast {
         public BlockList() {
             super();
         }
