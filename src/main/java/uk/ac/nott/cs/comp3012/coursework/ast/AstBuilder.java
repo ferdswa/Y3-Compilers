@@ -1,36 +1,37 @@
 package uk.ac.nott.cs.comp3012.coursework.ast;
 
-import com.ibm.icu.text.SymbolTable;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.TokenStream;
 import uk.ac.nott.cs.comp3012.coursework.NottscriptBaseVisitor;
 import uk.ac.nott.cs.comp3012.coursework.NottscriptLexer;
 import uk.ac.nott.cs.comp3012.coursework.NottscriptParser;
-import uk.ac.nott.cs.comp3012.coursework.util.HashMapTable;
+import uk.ac.nott.cs.comp3012.coursework.util.SymbolTable;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedHashMap;
+
 
 public class AstBuilder extends NottscriptBaseVisitor<Ast>
 {
-    private final HashMapTable<String,String,String> symbols;
+    private final SymbolTable allProgramSymbols = new SymbolTable();
 
-    public AstBuilder(HashMapTable<String,String,String> symbols) {
-        this.symbols = symbols;
+    public AstBuilder() {
     }
 
-    public void buildAst(String inputFile) {
+    public SymbolTable getSymbols() {
+        return allProgramSymbols;
+    }
+
+    public Ast buildAst(String inputFile) {
         NottscriptLexer lx = new NottscriptLexer(CharStreams.fromString(inputFile));
         TokenStream tokens = new CommonTokenStream(lx);
         NottscriptParser px = new NottscriptParser(tokens);
-
-        HashMapTable<String,String,String> symbols = new HashMapTable<>();
-        AstBuilder astBuilder = new AstBuilder(symbols);
+        AstBuilder astBuilder = new AstBuilder();
         Ast.BlockList blockList = (Ast.BlockList) astBuilder.visitProgram(px.program());
         for(Ast ast : blockList){
-            System.out.println(ast.toString());
+            return ast;
         }
+        return null;
     }
 
     @Override
@@ -47,10 +48,9 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitProgramBlock(NottscriptParser.ProgramBlockContext ctx) {
         Ast.ProgramBlock block = new Ast.ProgramBlock();
-
         NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom(0);
-        block.add(visit(openNameContext));
-
+        Ast elem = visit(openNameContext);
+        block.add(elem);
         for(NottscriptParser.DeclarationContext declarationContext : ctx.declaration()){
             block.add(visit(declarationContext));
         }
@@ -67,10 +67,13 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     public Ast visitDeclareVar(NottscriptParser.DeclareVarContext ctx) {
         Ast.DeclareVariable var = new Ast.DeclareVariable();
         NottscriptParser.TypeSpecContext typeSpecContext =  ctx.typeSpec();
-        var.add(visit(typeSpecContext));
+        Ast type = visit(typeSpecContext);
+        var.add(type);
         for(NottscriptParser.NameAtomContext nameContext : ctx.nameAtom()){
-            var.add(visit(nameContext));
+            Ast name =  visit(nameContext);
+            var.add(name);
         }
+
         return var;
     }
     @Override
@@ -553,7 +556,6 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitNameAtom(NottscriptParser.NameAtomContext ctx) {
         String name = ctx.getText();
-        //symbols.add(name);
         return new Ast.Atom.nameAtom(name);
     }
 }

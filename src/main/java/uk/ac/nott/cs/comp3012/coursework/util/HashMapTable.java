@@ -16,6 +16,10 @@ public class HashMapTable<K1, K2, V> implements Table<K1, K2, V> {
         return size;
     }
 
+    public int numRows(){
+        return tableCells.size();
+    }
+
     @Override
     public V put(K1 row, K2 col, V value) {
         if (!tableCells.containsKey(row)) {
