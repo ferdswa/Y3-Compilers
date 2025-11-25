@@ -6,7 +6,6 @@ import org.antlr.v4.runtime.TokenStream;
 import uk.ac.nott.cs.comp3012.coursework.NottscriptBaseVisitor;
 import uk.ac.nott.cs.comp3012.coursework.NottscriptLexer;
 import uk.ac.nott.cs.comp3012.coursework.NottscriptParser;
-import uk.ac.nott.cs.comp3012.coursework.util.HashMapTable;
 
 import java.util.ArrayList;
 
@@ -27,14 +26,13 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         TokenStream tokens = new CommonTokenStream(lx);
         NottscriptParser px = new NottscriptParser(tokens);
 
-        HashMapTable<String,String,String> symbols = new HashMapTable<>();
         AstBuilder astBuilder = this;
-        Ast.BlockList blockList = (Ast.BlockList) astBuilder.visitProgram(px.program());
-        PrintPathToNode(blockList.getClass().getSimpleName(),blockList);
+        Ast.Units units = (Ast.Units) astBuilder.visitProgram(px.program());
+        PrintPathToNode(units.getClass().getSimpleName(), units);
         for(String path : listPaths){
             System.out.println(path);
         }
-        return blockList;
+        return units;
     }
 
     /**
@@ -61,18 +59,18 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
 
     @Override
     public Ast visitProgram(NottscriptParser.ProgramContext ctx) {
-        Ast.BlockList blockList = new Ast.BlockList();
+        Ast.Units units = new Ast.Units();
         for(NottscriptParser.BlockContext blockContext : ctx.block()){
             Ast elem = visit(blockContext);
-            blockList.add(elem);
+            units.add(elem);
         }
-        return blockList;
+        return units;
     }
 
     //Blocks
     @Override
     public Ast visitProgramBlock(NottscriptParser.ProgramBlockContext ctx) {
-        Ast.ProgramBlock block = new Ast.ProgramBlock();
+        Ast.ProgramUnit block = new Ast.ProgramUnit();
         NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom(0);
         block.add(visit(openNameContext));
         for(NottscriptParser.DeclarationContext declarationContext : ctx.declaration()){
