@@ -1,7 +1,7 @@
 grammar Nottscript;
 //Parser rules
-program: (block)+ EOF;
-block: PROGRAM nameAtom declaration* statement* END PROGRAM nameAtom #programBlock
+program: (unit)+ EOF;
+unit: PROGRAM nameAtom declaration* statement* END PROGRAM nameAtom #programBlock
       | FUNCTION nameAtom LEFTBRACKET declaratorParamList? RIGHTBRACKET declaration* statement* END FUNCTION nameAtom #voidFuncBlock
       | FUNCTION nameAtom LEFTBRACKET declaratorParamList? RIGHTBRACKET RESULT LEFTBRACKET nameAtom RIGHTBRACKET declaration* statement* END FUNCTION nameAtom #returnFuncBlock
       | SUBROUTINE nameAtom LEFTBRACKET declaratorParamList? RIGHTBRACKET declaration* statement* END SUBROUTINE nameAtom #subrtBlock

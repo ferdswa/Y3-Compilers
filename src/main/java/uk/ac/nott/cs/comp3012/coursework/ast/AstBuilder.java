@@ -57,11 +57,13 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         }
     }
 
+
+    //VISIT AST
     @Override
     public Ast visitProgram(NottscriptParser.ProgramContext ctx) {
         Ast.Units units = new Ast.Units();
-        for(NottscriptParser.BlockContext blockContext : ctx.block()){
-            Ast elem = visit(blockContext);
+        for(NottscriptParser.UnitContext uctx : ctx.unit()){
+            Ast elem = visit(uctx);
             units.add(elem);
         }
         return units;
@@ -71,7 +73,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitProgramBlock(NottscriptParser.ProgramBlockContext ctx) {
         Ast.ProgramUnit block = new Ast.ProgramUnit();
-        NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom(0);
+        NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom().getFirst();
         block.add(visit(openNameContext));
         for(NottscriptParser.DeclarationContext declarationContext : ctx.declaration()){
             block.add(visit(declarationContext));
@@ -79,9 +81,88 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         for(NottscriptParser.StatementContext statementContext : ctx.statement()){
             block.add(visit(statementContext));
         }
-        NottscriptParser.NameAtomContext closeNameContext = ctx.nameAtom(1);
+        NottscriptParser.NameAtomContext closeNameContext = ctx.nameAtom().getLast();
         block.add(visit(closeNameContext));
         return block;
+    }
+    @Override
+    public Ast visitVoidFuncBlock(NottscriptParser.VoidFuncBlockContext ctx) {
+        Ast.FuncRVoidUnit fvUnit = new Ast.FuncRVoidUnit();
+        NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom().getFirst();
+        fvUnit.add(visit(openNameContext));
+        if(ctx.declaratorParamList()!=null){
+            NottscriptParser.DeclaratorParamListContext declParams= ctx.declaratorParamList();
+            fvUnit.add(visit(declParams));
+        }
+        for(NottscriptParser.DeclarationContext declarationContext : ctx.declaration()){
+            fvUnit.add(visit(declarationContext));
+        }
+        for(NottscriptParser.StatementContext statementContext : ctx.statement()){
+            fvUnit.add(visit(statementContext));
+        }
+        NottscriptParser.NameAtomContext closeNameContext = ctx.nameAtom().getLast();
+        fvUnit.add(visit(closeNameContext));
+        return fvUnit;
+    }
+    @Override
+    public Ast visitReturnFuncBlock(NottscriptParser.ReturnFuncBlockContext ctx) {
+        Ast.FuncRValueUnit ftUnit = new Ast.FuncRValueUnit();
+        NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom().getFirst();
+        ftUnit.add(visit(openNameContext));
+        if(ctx.declaratorParamList()!=null){
+            NottscriptParser.DeclaratorParamListContext declParams= ctx.declaratorParamList();
+            ftUnit.add(visit(declParams));
+        }
+        NottscriptParser.NameAtomContext resultNameCtx = ctx.nameAtom(1);
+        ftUnit.add(visit(resultNameCtx));
+        for(NottscriptParser.DeclarationContext declarationContext : ctx.declaration()){
+            ftUnit.add(visit(declarationContext));
+        }
+        for(NottscriptParser.StatementContext statementContext : ctx.statement()){
+            ftUnit.add(visit(statementContext));
+        }
+        NottscriptParser.NameAtomContext closeNameContext = ctx.nameAtom().getLast();
+        ftUnit.add(visit(closeNameContext));
+        return ftUnit;
+    }
+    @Override
+    public Ast visitSubrtBlock(NottscriptParser.SubrtBlockContext ctx) {
+        Ast.SbrtUnit sbrtUnit = new Ast.SbrtUnit();
+        NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom().getFirst();
+        sbrtUnit.add(visit(openNameContext));
+        if(ctx.declaratorParamList()!=null){
+            NottscriptParser.DeclaratorParamListContext declParams= ctx.declaratorParamList();
+            sbrtUnit.add(visit(declParams));
+        }
+        for(NottscriptParser.DeclarationContext declarationContext : ctx.declaration()){
+            sbrtUnit.add(visit(declarationContext));
+        }
+        for(NottscriptParser.StatementContext statementContext : ctx.statement()){
+            sbrtUnit.add(visit(statementContext));
+        }
+        NottscriptParser.NameAtomContext closeNameContext = ctx.nameAtom().getLast();
+        sbrtUnit.add(visit(closeNameContext));
+        return sbrtUnit;
+    }
+    @Override
+    public Ast visitCustomTypeDeclBlock(NottscriptParser.CustomTypeDeclBlockContext ctx) {
+        Ast.CustomTypeDefUnit ctUnit = new Ast.CustomTypeDefUnit();
+        NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom(0);
+        ctUnit.add(visit(openNameContext));
+        for(NottscriptParser.DeclarationContext declarationContext : ctx.declaration()){
+            ctUnit.add(visit(declarationContext));
+        }
+        NottscriptParser.NameAtomContext closeNameContext = ctx.nameAtom(1);
+        ctUnit.add(visit(closeNameContext));
+        return ctUnit;
+    }
+    @Override
+    public Ast visitDeclaratorParamList(NottscriptParser.DeclaratorParamListContext ctx) {
+        Ast.FuncDefineParams fp = new Ast.FuncDefineParams();
+        for(NottscriptParser.NameAtomContext vName : ctx.nameAtom()){
+            fp.add(visit(vName));
+        }
+        return fp;
     }
 
     //Declarations
