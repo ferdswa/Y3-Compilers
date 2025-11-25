@@ -17,6 +17,11 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
 
     ArrayList<String> listPaths = new ArrayList<>();
 
+    /**
+     * Generate an AST for the provided input code file
+     * @param inputFile String representation of the code file
+     * @return - The AST (Currently)
+     */
     public Ast buildAst(String inputFile) {
         NottscriptLexer lx = new NottscriptLexer(CharStreams.fromString(inputFile));
         TokenStream tokens = new CommonTokenStream(lx);
@@ -25,41 +30,19 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         HashMapTable<String,String,String> symbols = new HashMapTable<>();
         AstBuilder astBuilder = this;
         Ast.BlockList blockList = (Ast.BlockList) astBuilder.visitProgram(px.program());
-        StringBuilder curpath = new StringBuilder();
-        for(Ast ast : blockList){
-            curpath.append(ast.getClass().getSimpleName());
-            if(ast instanceof Ast.Atom) {
-
-            }
-            else {
-
-                ArrayList<Ast> x = (ArrayList<Ast>) ast;
-                PrintPathToNode(ast.getClass().getSimpleName(),x);
-                for(Ast ast2 : x){//recursivise
-                    if(ast2 instanceof Ast.Atom) {
-
-                    }
-                    else {
-                        ArrayList<Ast> x2 = (ArrayList<Ast>) ast2;
-                        for(Ast ast3 : x2){
-                            if(ast3 instanceof Ast.Atom) {
-
-                            }
-                            else {
-                                //System.out.println(ast.getClass().getSimpleName() + ":" + ast2.getClass().getSimpleName() +":" + ast3.getClass().getSimpleName());
-                            }
-                        }
-                    }
-                }
-
-            }
-        }
+        PrintPathToNode(blockList.getClass().getSimpleName(),blockList);
         for(String path : listPaths){
             System.out.println(path);
         }
         return blockList;
     }
 
+    /**
+     * Recursively walk the generated AST and find the path to all terminals, filling in non-terminals on the way
+     * @param curPath The base path (this will be BlockList)
+     * @param cNode Current AST node to break down and walk subtree of
+     */
+    @SuppressWarnings("unchecked") //Doesn't matter, all ASTs are either an ArrayList<Ast> or Ast.Atom which we've checked for already.
     public void PrintPathToNode(String curPath, ArrayList<Ast> cNode){
         StringBuilder curPathBuilder = new StringBuilder(curPath);
         for(Ast splitAST : cNode){
@@ -69,7 +52,6 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
             }
             else{
                 curPathBuilder.append(splitAST.getClass().getSimpleName());
-
                 ArrayList<Ast> x = (ArrayList<Ast>) splitAST;
                 PrintPathToNode(curPathBuilder.toString(),x);
             }
