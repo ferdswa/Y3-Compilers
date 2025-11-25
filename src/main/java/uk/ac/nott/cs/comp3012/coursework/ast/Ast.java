@@ -394,56 +394,56 @@ public interface Ast {
             super(elems);
         }
     }
-    class FuncDeclareParamList  extends ArrayList<Ast> implements Ast {
-        public FuncDeclareParamList() {super();}
-        public FuncDeclareParamList(Collection<? extends Ast> elems) {
+    class FuncDefineParams extends ArrayList<Ast> implements Ast {
+        public FuncDefineParams() {super();}
+        public FuncDefineParams(Collection<? extends Ast> elems) {
             super(elems);
         }
     }
     //Blocks - A block is a list of declarations followed by a list of statements, except CustomTypeDeclBlock which only has declarations
-    class CustomTypeDeclBlock extends ArrayList<Ast> implements Ast {
-        public CustomTypeDeclBlock() {super();}
-        public CustomTypeDeclBlock(Collection<? extends Ast> elems) {super(elems);}
+    class CustomTypeDefUnit extends ArrayList<Ast> implements Ast {
+        public CustomTypeDefUnit() {super();}
+        public CustomTypeDefUnit(Collection<? extends Ast> elems) {super(elems);}
     }
-    class SbrtBlock  extends ArrayList<Ast> implements Ast {
-        public SbrtBlock() {
+    class SbrtUnit extends ArrayList<Ast> implements Ast {
+        public SbrtUnit() {
             super();
         }
-        public SbrtBlock(Collection<? extends Ast> elems) {
+        public SbrtUnit(Collection<? extends Ast> elems) {
             super(elems);
         }
     }
-    class VoidFuncBlock  extends ArrayList<Ast> implements Ast {
-        public VoidFuncBlock() {
+    class FuncRVoidUnit extends ArrayList<Ast> implements Ast {
+        public FuncRVoidUnit() {
             super();
         }
-        public VoidFuncBlock(Collection<? extends Ast> elems) {
+        public FuncRVoidUnit(Collection<? extends Ast> elems) {
             super(elems);
         }
     }
-    class ReturnFuncBlock  extends ArrayList<Ast> implements Ast {
-        public ReturnFuncBlock() {
+    class FuncRValueUnit extends ArrayList<Ast> implements Ast {
+        public FuncRValueUnit() {
             super();
         }
 
-        public ReturnFuncBlock(Collection<? extends Ast> elems) {
+        public FuncRValueUnit(Collection<? extends Ast> elems) {
             super(elems);
         }
     }
-    class ProgramBlock  extends ArrayList<Ast> implements Ast {
-        public ProgramBlock() {
+    class ProgramUnit extends ArrayList<Ast> implements Ast {
+        public ProgramUnit() {
             super();
         }
-        public ProgramBlock(Collection<? extends Ast> elems) {
+        public ProgramUnit(Collection<? extends Ast> elems) {
             super(elems);
         }
     }
     //Program is a list of blocks
-    final class BlockList extends ArrayList<Ast> implements Ast {
-        public BlockList() {
+    final class Units extends ArrayList<Ast> implements Ast {
+        public Units() {
             super();
         }
-        public BlockList(Collection<? extends Ast> elems) {
+        public Units(Collection<? extends Ast> elems) {
             super(elems);
         }
     }
