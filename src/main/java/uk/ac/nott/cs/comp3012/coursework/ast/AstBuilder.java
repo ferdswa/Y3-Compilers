@@ -46,7 +46,67 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         for(Ast splitAST : cNode){
             curPathBuilder = new StringBuilder(curPathBuilder.append(":"));
             if(splitAST instanceof Ast.Atom){
-                listPaths.add(String.valueOf(curPathBuilder.append(splitAST.getClass().getSimpleName())));
+                if(splitAST instanceof Ast.Atom.nameAtom){
+                    curPathBuilder.append(splitAST.getClass().getSimpleName());
+                    curPathBuilder.append(":");
+                    curPathBuilder.append(((Ast.Atom.nameAtom)splitAST).name());
+                }else if(splitAST instanceof Ast.Atom.numAtom){
+                    curPathBuilder.append(splitAST.getClass().getSimpleName());
+                    curPathBuilder.append(":");
+                    curPathBuilder.append(((Ast.Atom.numAtom) splitAST).i());
+                } else if(splitAST instanceof Ast.Atom.binNumAtom){
+                    curPathBuilder.append(splitAST.getClass().getSimpleName());
+                    curPathBuilder.append(":");
+                    curPathBuilder.append(((Ast.Atom.binNumAtom) splitAST).bin());
+                }
+                else if(splitAST instanceof Ast.Atom.hexNumAtom){
+                    curPathBuilder.append(splitAST.getClass().getSimpleName());
+                    curPathBuilder.append(":");
+                    curPathBuilder.append(((Ast.Atom.hexNumAtom) splitAST).hex());
+                }
+                else if(splitAST instanceof Ast.Atom.octNumAtom){
+                    curPathBuilder.append(splitAST.getClass().getSimpleName());
+                    curPathBuilder.append(":");
+                    curPathBuilder.append(((Ast.Atom.octNumAtom) splitAST).oct());
+                }else if(splitAST instanceof Ast.Atom.realAtom){
+                    curPathBuilder.append(splitAST.getClass().getSimpleName());
+                    curPathBuilder.append(":");
+                    curPathBuilder.append(((Ast.Atom.realAtom) splitAST).f());
+                }else if(splitAST instanceof Ast.Atom.charLiteralAtom){
+                    curPathBuilder.append(splitAST.getClass().getSimpleName());
+                    curPathBuilder.append(":");
+                    curPathBuilder.append(((Ast.Atom.charLiteralAtom) splitAST).charLiteral());
+                }else if(splitAST instanceof Ast.Atom.logicAtom){
+                    curPathBuilder.append(splitAST.getClass().getSimpleName());
+                    curPathBuilder.append(":");
+                    curPathBuilder.append(((Ast.Atom.logicAtom) splitAST).logicVal());
+                }else if(splitAST instanceof Ast.Atom.boolAtom){
+                    curPathBuilder.append(splitAST.getClass().getSimpleName());
+                    curPathBuilder.append(":");
+                    curPathBuilder.append(((Ast.Atom.boolAtom) splitAST).bool());
+                }
+                else if(splitAST instanceof Ast.Atom.addSubAtom){
+                    curPathBuilder.append(splitAST.getClass().getSimpleName());
+                    curPathBuilder.append(":");
+                    curPathBuilder.append(((Ast.Atom.addSubAtom) splitAST).op());
+                }else if(splitAST instanceof Ast.Atom.mulDivAtom){
+                    curPathBuilder.append(splitAST.getClass().getSimpleName());
+                    curPathBuilder.append(":");
+                    curPathBuilder.append(((Ast.Atom.mulDivAtom) splitAST).op());
+                }else if(splitAST instanceof Ast.Atom.relAtom){
+                    curPathBuilder.append(splitAST.getClass().getSimpleName());
+                    curPathBuilder.append(":");
+                    curPathBuilder.append(((Ast.Atom.relAtom) splitAST).relOp());
+                }else if(splitAST instanceof Ast.Atom.starAtom){
+                    curPathBuilder.append(splitAST.getClass().getSimpleName());
+                    curPathBuilder.append(":");
+                    curPathBuilder.append(((Ast.Atom.starAtom) splitAST).ptrStar());
+                }else if(splitAST instanceof Ast.Atom.typeAtom){
+                    curPathBuilder.append(splitAST.getClass().getSimpleName());
+                    curPathBuilder.append(":");
+                    curPathBuilder.append(((Ast.Atom.typeAtom) splitAST).type());
+                }
+                listPaths.add(String.valueOf(curPathBuilder));
             }
             else{
                 curPathBuilder.append(splitAST.getClass().getSimpleName());
