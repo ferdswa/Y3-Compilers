@@ -15,6 +15,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
 
     public AstBuilder(){}
 
+    ArrayList<String> listPaths = new ArrayList<>();
+
     public Ast buildAst(String inputFile) {
         NottscriptLexer lx = new NottscriptLexer(CharStreams.fromString(inputFile));
         TokenStream tokens = new CommonTokenStream(lx);
@@ -23,12 +25,16 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         HashMapTable<String,String,String> symbols = new HashMapTable<>();
         AstBuilder astBuilder = this;
         Ast.BlockList blockList = (Ast.BlockList) astBuilder.visitProgram(px.program());
+        StringBuilder curpath = new StringBuilder();
         for(Ast ast : blockList){
+            curpath.append(ast.getClass().getSimpleName());
             if(ast instanceof Ast.Atom) {
 
             }
             else {
+
                 ArrayList<Ast> x = (ArrayList<Ast>) ast;
+                PrintPathToNode(ast.getClass().getSimpleName(),x);
                 for(Ast ast2 : x){//recursivise
                     if(ast2 instanceof Ast.Atom) {
 
@@ -40,17 +46,35 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
 
                             }
                             else {
-                                System.out.println(ast.getClass().getSimpleName() + ":" + ast2.getClass().getSimpleName() +":" + ast3.getClass().getSimpleName());
+                                //System.out.println(ast.getClass().getSimpleName() + ":" + ast2.getClass().getSimpleName() +":" + ast3.getClass().getSimpleName());
                             }
                         }
                     }
                 }
-                System.out.println(x.toString());
-                Class<? extends Ast> X = ast.getClass();
-                System.out.println(X.getSimpleName());
+
             }
         }
+        for(String path : listPaths){
+            System.out.println(path);
+        }
         return blockList;
+    }
+
+    public void PrintPathToNode(String curPath, ArrayList<Ast> cNode){
+        StringBuilder curPathBuilder = new StringBuilder(curPath);
+        for(Ast splitAST : cNode){
+            curPathBuilder = new StringBuilder(curPathBuilder.append(":"));
+            if(splitAST instanceof Ast.Atom){
+                listPaths.add(String.valueOf(curPathBuilder.append(splitAST.getClass().getSimpleName())));
+            }
+            else{
+                curPathBuilder.append(splitAST.getClass().getSimpleName());
+
+                ArrayList<Ast> x = (ArrayList<Ast>) splitAST;
+                PrintPathToNode(curPathBuilder.toString(),x);
+            }
+            curPathBuilder = new StringBuilder().append(curPath);
+        }
     }
 
     @Override
