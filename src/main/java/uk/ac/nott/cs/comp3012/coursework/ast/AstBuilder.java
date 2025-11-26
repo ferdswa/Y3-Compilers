@@ -21,7 +21,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
      * @param inputFile String representation of the code file
      * @return - The AST (Currently)
      */
-    public Ast buildAst(String inputFile) {
+    public ArrayList<String> buildAst(String inputFile) {
         NottscriptLexer lx = new NottscriptLexer(CharStreams.fromString(inputFile));
         TokenStream tokens = new CommonTokenStream(lx);
         NottscriptParser px = new NottscriptParser(tokens);
@@ -29,14 +29,11 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         AstBuilder astBuilder = this;
         Ast.Units units = (Ast.Units) astBuilder.visitProgram(px.program());
         PrintPathToNode(units.getClass().getSimpleName(), units);
-        for(String path : listPaths){
-            System.out.println(path);
-        }
-        return units;
+        return listPaths;
     }
 
     /**
-     * Recursively walk the generated AST and find the path to all terminals, filling in non-terminals on the way
+     * Recursively walk the generated AST and find the path to all terminals, filling in non-terminals on the way. Add terminal values to the path when discovered
      * @param curPath The base path (this will be BlockList)
      * @param cNode Current AST node to break down and walk subtree of
      */
@@ -46,7 +43,83 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         for(Ast splitAST : cNode){
             curPathBuilder = new StringBuilder(curPathBuilder.append(":"));
             if(splitAST instanceof Ast.Atom){
-                listPaths.add(String.valueOf(curPathBuilder.append(splitAST.getClass().getSimpleName())));
+                switch (splitAST) {
+                    case Ast.Atom.nameAtom nameAtom -> {
+                        curPathBuilder.append(splitAST.getClass().getSimpleName());
+                        curPathBuilder.append(":");
+                        curPathBuilder.append(nameAtom.name());
+                    }
+                    case Ast.Atom.numAtom numAtom -> {
+                        curPathBuilder.append(splitAST.getClass().getSimpleName());
+                        curPathBuilder.append(":");
+                        curPathBuilder.append(numAtom.i());
+                    }
+                    case Ast.Atom.binNumAtom binNumAtom -> {
+                        curPathBuilder.append(splitAST.getClass().getSimpleName());
+                        curPathBuilder.append(":");
+                        curPathBuilder.append(binNumAtom.bin());
+                    }
+                    case Ast.Atom.hexNumAtom hexNumAtom -> {
+                        curPathBuilder.append(splitAST.getClass().getSimpleName());
+                        curPathBuilder.append(":");
+                        curPathBuilder.append(hexNumAtom.hex());
+                    }
+                    case Ast.Atom.octNumAtom octNumAtom -> {
+                        curPathBuilder.append(splitAST.getClass().getSimpleName());
+                        curPathBuilder.append(":");
+                        curPathBuilder.append(octNumAtom.oct());
+                    }
+                    case Ast.Atom.realAtom realAtom -> {
+                        curPathBuilder.append(splitAST.getClass().getSimpleName());
+                        curPathBuilder.append(":");
+                        curPathBuilder.append(realAtom.f());
+                    }
+                    case Ast.Atom.charLiteralAtom charLiteralAtom -> {
+                        curPathBuilder.append(splitAST.getClass().getSimpleName());
+                        curPathBuilder.append(":");
+                        curPathBuilder.append(charLiteralAtom.charLiteral());
+                    }
+                    case Ast.Atom.logicAtom logicAtom -> {
+                        curPathBuilder.append(splitAST.getClass().getSimpleName());
+                        curPathBuilder.append(":");
+                        curPathBuilder.append(logicAtom.logicVal());
+                    }
+                    case Ast.Atom.boolAtom boolAtom -> {
+                        curPathBuilder.append(splitAST.getClass().getSimpleName());
+                        curPathBuilder.append(":");
+                        curPathBuilder.append(boolAtom.bool());
+                    }
+                    case Ast.Atom.addSubAtom addSubAtom -> {
+                        curPathBuilder.append(splitAST.getClass().getSimpleName());
+                        curPathBuilder.append(":");
+                        curPathBuilder.append(addSubAtom.op());
+                    }
+                    case Ast.Atom.mulDivAtom mulDivAtom -> {
+                        curPathBuilder.append(splitAST.getClass().getSimpleName());
+                        curPathBuilder.append(":");
+                        curPathBuilder.append(mulDivAtom.op());
+                    }
+                    case Ast.Atom.relAtom relAtom -> {
+                        curPathBuilder.append(splitAST.getClass().getSimpleName());
+                        curPathBuilder.append(":");
+                        curPathBuilder.append(relAtom.relOp());
+                    }
+                    case Ast.Atom.starAtom starAtom -> {
+                        curPathBuilder.append(splitAST.getClass().getSimpleName());
+                        curPathBuilder.append(":");
+                        curPathBuilder.append(starAtom.ptrStar());
+                    }
+                    case Ast.Atom.typeAtom typeAtom -> {
+                        curPathBuilder.append(splitAST.getClass().getSimpleName());
+                        curPathBuilder.append(":");
+                        curPathBuilder.append(typeAtom.type());
+                    }
+                    default -> {
+                        System.err.println("Error: unknown atom type");
+                        System.exit(-1);
+                    }
+                }
+                listPaths.add(String.valueOf(curPathBuilder));
             }
             else{
                 curPathBuilder.append(splitAST.getClass().getSimpleName());
