@@ -14,6 +14,8 @@ dependencies {
     antlr("org.antlr:antlr4:4.13.2")
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+    // https://mvnrepository.com/artifact/org.apache.commons/commons-collections4
+    implementation("org.apache.commons:commons-collections4:4.5.0")
 }
 
 tasks.test {

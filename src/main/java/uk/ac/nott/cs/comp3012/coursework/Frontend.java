@@ -1,21 +1,16 @@
 package uk.ac.nott.cs.comp3012.coursework;
 
+import org.apache.commons.collections4.ListUtils;
 import uk.ac.nott.cs.comp3012.coursework.ast.Ast;
 import uk.ac.nott.cs.comp3012.coursework.ast.AstBuilder;
 import uk.ac.nott.cs.comp3012.coursework.util.Node;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Frontend {
-    List<List<String[]>> difference = new ArrayList<>();
-    int posOfDifference = 0;
-
-
     public Ast runFrontend(String input) throws IOException {
         AstBuilder astBuilder = new AstBuilder();
         ArrayList<String> ast = astBuilder.buildAst(input);
@@ -26,6 +21,33 @@ public class Frontend {
         for(String[] y: pathAsNodes){
             System.out.println( Arrays.toString(y));
         }
+        List<Node> b = getNodes(pathAsNodes);
+        ArrayList<Integer> splitAt = new ArrayList<>();
+        boolean areSU;
+        for(Node x: b){
+            //Values
+            if(!(b.indexOf(x)==b.indexOf(b.getLast()))){
+                areSU= areSameUnit(x,b.get(b.indexOf(x)+1));
+                if(!areSU){
+                    splitAt.add(b.indexOf(x)+1);
+                    System.out.println("New sublist begins @"+(b.indexOf(x)+1));//Found where new unit begins
+                }
+            }
+        }
+        int splitAtX = splitAt.getFirst();
+        List<List<String>> pathUnions = new ArrayList<>();
+        for(String[] nodePath: pathAsNodes){
+            while(pathAsNodes.indexOf(nodePath)+1<splitAtX){
+                List<String> union = ListUtils.union(List.of(nodePath), List.of(pathAsNodes.get(pathAsNodes.indexOf(nodePath) + 1)));
+            }
+        }
+        for(List<String> path: pathUnions){
+            System.out.println(Arrays.toString(path.toArray()));
+        }
+        return null;
+    }
+
+    private static List<Node> getNodes(List<String[]> pathAsNodes) {
         ArrayList<Node> astAsNodes = new ArrayList<>();
         Node prevNode = null;
         Node newNode = null;
@@ -45,49 +67,15 @@ public class Frontend {
                 i--;
             }
         }
-        Iterator listNodes = astAsNodes.iterator();
 
         resNode = astAsNodes.getLast().getParent();
 
         Stream<Node> a= astAsNodes.stream().filter(x-> x.getChildren().isEmpty());
         List<Node> b = a.toList();
-        List<List<Node>> bsParents = new ArrayList<>();
-        List<Node> builder = new ArrayList<>();
-        for(Node x: b){
-            resNode = x;
-            //Values
-            builder = new ArrayList<>();
-            while(x!=null){
-                builder.add(x);
-                x=x.getParent();
-            }
-            bsParents.add(builder);
-        }
-        for(Node x: b){
-                //Values
-                if(!(b.indexOf(x)==b.indexOf(b.getLast()))){
-                    System.out.print(x.getName()+": ");
-                    areSLNeighbors(x,b.get(b.indexOf(x)+1));
-                }
-            System.out.print("\b\n");
-        }
-
-        String inputA = "d";
-        while(inputA.equals("d") || inputA.equals("u")){
-            System.out.println( "You are in: "+ resNode.getName());
-            BufferedReader r = new BufferedReader(
-                    new InputStreamReader(System.in));
-            inputA = r.readLine();
-            if(inputA.equals("d")){
-                resNode = resNode.getChildren().getLast();
-            } else if (inputA.equals("u")) {
-                resNode = resNode.getParent();
-            }
-        }
-
-        return null;
+        return b;
     }
-    public void areSLNeighbors(Node n1, Node n2){
+
+    public boolean areSameUnit(Node n1, Node n2){
         ArrayList<Node> nodes = new ArrayList<>();
         nodes.add(n1);
         nodes.add(n2);
@@ -102,11 +90,7 @@ public class Frontend {
             }
             bsParents.add(builder);
         }
-        if(bsParents.get(0).size()==4 && bsParents.get(1).size()==4){
-            System.out.println(false);
-        }
-        else{
-            System.out.println("traverse");//Nodes are currently perceived as neighbors
-        }
+        //They are in separate program units.
+        return bsParents.get(0).size() != 4 || bsParents.get(1).size() != 4;
     }
 }
