@@ -29,8 +29,4 @@ public class SymbolData{
         this.type=type;
         this.value=value;
     }
-
-    public String toString(){
-        return this.name+" "+this.type+" "+this.value;
-    }
 }

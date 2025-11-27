@@ -14,124 +14,19 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
 
     public AstBuilder(){}
 
-    ArrayList<String> listPaths = new ArrayList<>();
-
     /**
      * Generate an AST for the provided input code file
      * @param inputFile String representation of the code file
      * @return - The AST (Currently)
      */
-    public ArrayList<String> buildAst(String inputFile) {
+    public Ast buildAst(String inputFile) {
         NottscriptLexer lx = new NottscriptLexer(CharStreams.fromString(inputFile));
         TokenStream tokens = new CommonTokenStream(lx);
         NottscriptParser px = new NottscriptParser(tokens);
 
         AstBuilder astBuilder = this;
-        Ast.Units units = (Ast.Units) astBuilder.visitProgram(px.program());
-        PrintPathToNode(units.getClass().getSimpleName(), units);
-        return listPaths;
+        return astBuilder.visitProgram(px.program());
     }
-
-    /**
-     * Recursively walk the generated AST and find the path to all terminals, filling in non-terminals on the way. Add terminal values to the path when discovered
-     *
-     *
-     * @param curPath The base path (this will be BlockList)
-     * @param cNode Current AST node to break down and walk subtree of
-     */
-    @SuppressWarnings("unchecked") //Doesn't matter, all ASTs are either an ArrayList<Ast> or Ast.Atom which we've checked for already.
-    public void PrintPathToNode(String curPath, ArrayList<Ast> cNode){
-        StringBuilder curPathBuilder = new StringBuilder(curPath);
-        for(Ast splitAST : cNode){
-            curPathBuilder = new StringBuilder(curPathBuilder.append(":"));
-            if(splitAST instanceof Ast.Atom){
-                switch (splitAST) {
-                    case Ast.Atom.nameAtom nameAtom -> {
-                        curPathBuilder.append(splitAST.getClass().getSimpleName());
-                        curPathBuilder.append(":");
-                        curPathBuilder.append(nameAtom.name());
-                    }
-                    case Ast.Atom.numAtom numAtom -> {
-                        curPathBuilder.append(splitAST.getClass().getSimpleName());
-                        curPathBuilder.append(":");
-                        curPathBuilder.append(numAtom.i());
-                    }
-                    case Ast.Atom.binNumAtom binNumAtom -> {
-                        curPathBuilder.append(splitAST.getClass().getSimpleName());
-                        curPathBuilder.append(":");
-                        curPathBuilder.append(binNumAtom.bin());
-                    }
-                    case Ast.Atom.hexNumAtom hexNumAtom -> {
-                        curPathBuilder.append(splitAST.getClass().getSimpleName());
-                        curPathBuilder.append(":");
-                        curPathBuilder.append(hexNumAtom.hex());
-                    }
-                    case Ast.Atom.octNumAtom octNumAtom -> {
-                        curPathBuilder.append(splitAST.getClass().getSimpleName());
-                        curPathBuilder.append(":");
-                        curPathBuilder.append(octNumAtom.oct());
-                    }
-                    case Ast.Atom.realAtom realAtom -> {
-                        curPathBuilder.append(splitAST.getClass().getSimpleName());
-                        curPathBuilder.append(":");
-                        curPathBuilder.append(realAtom.f());
-                    }
-                    case Ast.Atom.charLiteralAtom charLiteralAtom -> {
-                        curPathBuilder.append(splitAST.getClass().getSimpleName());
-                        curPathBuilder.append(":");
-                        curPathBuilder.append(charLiteralAtom.charLiteral());
-                    }
-                    case Ast.Atom.logicAtom logicAtom -> {
-                        curPathBuilder.append(splitAST.getClass().getSimpleName());
-                        curPathBuilder.append(":");
-                        curPathBuilder.append(logicAtom.logicVal());
-                    }
-                    case Ast.Atom.boolAtom boolAtom -> {
-                        curPathBuilder.append(splitAST.getClass().getSimpleName());
-                        curPathBuilder.append(":");
-                        curPathBuilder.append(boolAtom.bool());
-                    }
-                    case Ast.Atom.addSubAtom addSubAtom -> {
-                        curPathBuilder.append(splitAST.getClass().getSimpleName());
-                        curPathBuilder.append(":");
-                        curPathBuilder.append(addSubAtom.op());
-                    }
-                    case Ast.Atom.mulDivAtom mulDivAtom -> {
-                        curPathBuilder.append(splitAST.getClass().getSimpleName());
-                        curPathBuilder.append(":");
-                        curPathBuilder.append(mulDivAtom.op());
-                    }
-                    case Ast.Atom.relAtom relAtom -> {
-                        curPathBuilder.append(splitAST.getClass().getSimpleName());
-                        curPathBuilder.append(":");
-                        curPathBuilder.append(relAtom.relOp());
-                    }
-                    case Ast.Atom.starAtom starAtom -> {
-                        curPathBuilder.append(splitAST.getClass().getSimpleName());
-                        curPathBuilder.append(":");
-                        curPathBuilder.append(starAtom.ptrStar());
-                    }
-                    case Ast.Atom.typeAtom typeAtom -> {
-                        curPathBuilder.append(splitAST.getClass().getSimpleName());
-                        curPathBuilder.append(":");
-                        curPathBuilder.append(typeAtom.type());
-                    }
-                    default -> {
-                        System.err.println("Error: unknown atom type");
-                        System.exit(-1);
-                    }
-                }
-                listPaths.add(String.valueOf(curPathBuilder));
-            }
-            else{
-                curPathBuilder.append(splitAST.getClass().getSimpleName());
-                ArrayList<Ast> x = (ArrayList<Ast>) splitAST;
-                PrintPathToNode(curPathBuilder.toString(),x);
-            }
-            curPathBuilder = new StringBuilder().append(curPath);
-        }
-    }
-
 
     //VISIT AST
     @Override
@@ -148,6 +43,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitProgramBlock(NottscriptParser.ProgramBlockContext ctx) {
         Ast.ProgramUnit block = new Ast.ProgramUnit();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom(0);
+        block.add(visit(nodeAtom));
         NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom().getFirst();
         block.add(visit(openNameContext));
         for(NottscriptParser.DeclarationContext declarationContext : ctx.declaration()){
@@ -163,6 +60,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitVoidFuncBlock(NottscriptParser.VoidFuncBlockContext ctx) {
         Ast.FuncRVoidUnit fvUnit = new Ast.FuncRVoidUnit();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom(0);
+        fvUnit.add(visit(nodeAtom));
         NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom().getFirst();
         fvUnit.add(visit(openNameContext));
         if(ctx.declaratorParamList()!=null){
@@ -182,6 +81,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitReturnFuncBlock(NottscriptParser.ReturnFuncBlockContext ctx) {
         Ast.FuncRValueUnit ftUnit = new Ast.FuncRValueUnit();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom(0);
+        ftUnit.add(visit(nodeAtom));
         NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom().getFirst();
         ftUnit.add(visit(openNameContext));
         if(ctx.declaratorParamList()!=null){
@@ -203,6 +104,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitSubrtBlock(NottscriptParser.SubrtBlockContext ctx) {
         Ast.SbrtUnit sbrtUnit = new Ast.SbrtUnit();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom(0);
+        sbrtUnit.add(visit(nodeAtom));
         NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom().getFirst();
         sbrtUnit.add(visit(openNameContext));
         if(ctx.declaratorParamList()!=null){
@@ -222,6 +125,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitCustomTypeDeclBlock(NottscriptParser.CustomTypeDeclBlockContext ctx) {
         Ast.CustomTypeDefUnit ctUnit = new Ast.CustomTypeDefUnit();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom(0);
+        ctUnit.add(visit(nodeAtom));
         NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom(0);
         ctUnit.add(visit(openNameContext));
         for(NottscriptParser.DeclarationContext declarationContext : ctx.declaration()){
@@ -254,6 +159,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitDeclPtr(NottscriptParser.DeclPtrContext ctx) {
         Ast.DeclarePointer declarePointer = new Ast.DeclarePointer();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
+        declarePointer.add(visit(nodeAtom));
         NottscriptParser.TypeSpecContext typeSpecContext =  ctx.typeSpec();
         declarePointer.add(visit(typeSpecContext));
         for(NottscriptParser.NameAtomContext nameContext : ctx.nameAtom()){
@@ -277,6 +184,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitDeclPtrArray(NottscriptParser.DeclPtrArrayContext ctx) {
         Ast.DeclarePointerArray declarePointerArray = new Ast.DeclarePointerArray();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
+        declarePointerArray.add(visit(nodeAtom));
         NottscriptParser.TypeSpecContext typeSpecContext =  ctx.typeSpec();
         declarePointerArray.add(visit(typeSpecContext));
         for(NottscriptParser.StarContext pointerArrLen : ctx.star()){
@@ -298,6 +207,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitCustom(NottscriptParser.CustomContext ctx){
         Ast.CustomTypeSpec customTypeSpec = new Ast.CustomTypeSpec();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
+        customTypeSpec.add(visit(nodeAtom));
         NottscriptParser.NameAtomContext name =  ctx.nameAtom();
         customTypeSpec.add(visit(name));
         return customTypeSpec;
@@ -306,6 +217,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitBaseAssign(NottscriptParser.BaseAssignContext ctx) {
         Ast.NormalAssign normalAssign = new Ast.NormalAssign();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
+        normalAssign.add(visit(nodeAtom));
         NottscriptParser.NameAtomContext name = ctx.nameAtom();
         normalAssign.add(visit(name));
         NottscriptParser.ExprContext expr = ctx.expr();
@@ -315,6 +228,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitArrayAssign(NottscriptParser.ArrayAssignContext ctx) {
         Ast.ArrayAssign arrayAssign = new Ast.ArrayAssign();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
+        arrayAssign.add(visit(nodeAtom));
         NottscriptParser.ArrayContext array = ctx.array();
         arrayAssign.add(visit(array));
         NottscriptParser.ExprContext expr = ctx.expr();
@@ -324,6 +239,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitCtArrayAssign(NottscriptParser.CtArrayAssignContext ctx){
         Ast.CustomTypeArrayAssign customTypeArrayAssign = new Ast.CustomTypeArrayAssign();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
+        customTypeArrayAssign.add(visit(nodeAtom));
         NottscriptParser.NameAtomContext name =  ctx.nameAtom();
         customTypeArrayAssign.add(visit(name));
         NottscriptParser.ArrayContext array = ctx.array();
@@ -335,6 +252,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitCtAssign(NottscriptParser.CtAssignContext ctx){
         Ast.CustomTypeAssign customTypeAssign = new Ast.CustomTypeAssign();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
+        customTypeAssign.add(visit(nodeAtom));
         for(NottscriptParser.NameAtomContext name : ctx.nameAtom()){
             customTypeAssign.add(visit(name));
         }
@@ -345,6 +264,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitCall(NottscriptParser.CallContext ctx) {
         Ast.SbrtCall sbrtCall = new Ast.SbrtCall();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
+        sbrtCall.add(visit(nodeAtom));
         NottscriptParser.NameAtomContext name =  ctx.nameAtom();
         sbrtCall.add(visit(name));
         NottscriptParser.ParamListContext paramList = ctx.paramList();
@@ -354,6 +275,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitIfBlock(NottscriptParser.IfBlockContext ctx) {
         Ast.IfBlock ifBlock = new Ast.IfBlock();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom(0);
+        ifBlock.add(visit(nodeAtom));
         NottscriptParser.ExprContext expr = ctx.expr();
         ifBlock.add(visit(expr));
         for(NottscriptParser.StatementContext statement : ctx.statement()){
@@ -364,6 +287,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitIfElse(NottscriptParser.IfElseContext ctx) {
         Ast.IfElseBlock ifElseBlock = new Ast.IfElseBlock();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom(0);
+        ifElseBlock.add(visit(nodeAtom));
         NottscriptParser.ExprContext expr = ctx.expr();
         ifElseBlock.add(visit(expr));
         for(NottscriptParser.StatementContext statement : ctx.statement()){
@@ -376,6 +301,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitElseStmt(NottscriptParser.ElseStmtContext ctx) {
         Ast.ElseStmt elseStmt = new Ast.ElseStmt();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
+        elseStmt.add(visit(nodeAtom));
         for(NottscriptParser.StatementContext statement : ctx.statement()){
             elseStmt.add(visit(statement));
         }
@@ -384,6 +311,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitIfStmt(NottscriptParser.IfStmtContext ctx) {
         Ast.IfStatement ifStatement = new Ast.IfStatement();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
+        ifStatement.add(visit(nodeAtom));
         NottscriptParser.ExprContext expr = ctx.expr();
         ifStatement.add(visit(expr));
         NottscriptParser.StatementContext statement = ctx.statement();
@@ -406,6 +335,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitDoIncrN1(NottscriptParser.DoIncrN1Context ctx) {
         Ast.DoIncrNot1 doIncrNot1 = new Ast.DoIncrNot1();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom(0);
+        doIncrNot1.add(visit(nodeAtom));
         for(NottscriptParser.DoParamContext doParamContext : ctx.doParam()){
             doIncrNot1.add(visit(doParamContext));
         }
@@ -417,6 +348,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitDoIncr1(NottscriptParser.DoIncr1Context ctx) {
         Ast.DoIncr1 doIncr1 = new Ast.DoIncr1();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom(0);
+        doIncr1.add(visit(nodeAtom));
         for(NottscriptParser.DoParamContext doParamContext : ctx.doParam()){
             doIncr1.add(visit(doParamContext));
         }
@@ -428,6 +361,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitDoWhile(NottscriptParser.DoWhileContext ctx) {
         Ast.DoWhile doWhile = new Ast.DoWhile();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom(0);
+        doWhile.add(visit(nodeAtom));
         NottscriptParser.ExprContext expr = ctx.expr();
         doWhile.add(visit(expr));
         for(NottscriptParser.StatementContext statement : ctx.statement()){
@@ -451,6 +386,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitRead(NottscriptParser.ReadContext ctx) {
         Ast.Read read = new Ast.Read();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
+        read.add(visit(nodeAtom));
         for(NottscriptParser.ReadParamContext readParamContext : ctx.readParam()){
             read.add(visit(readParamContext));
         }
@@ -459,6 +396,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitWrite(NottscriptParser.WriteContext ctx) {
         Ast.Write write = new Ast.Write();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
+        write.add(visit(nodeAtom));
         for(NottscriptParser.ExprContext expr : ctx.expr()){
             write.add(visit(expr));
         }
@@ -467,6 +406,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitAllocPtr(NottscriptParser.AllocPtrContext ctx) {
         Ast.AllocPtr allocPtr = new Ast.AllocPtr();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
+        allocPtr.add(visit(nodeAtom));
         NottscriptParser.NameAtomContext name = ctx.nameAtom();
         allocPtr.add(visit(name));
         return allocPtr;
@@ -474,6 +415,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitAllocPtrArray(NottscriptParser.AllocPtrArrayContext ctx) {
         Ast.AllocPtrArray allocPtrArray = new Ast.AllocPtrArray();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
+        allocPtrArray.add(visit(nodeAtom));
         NottscriptParser.NameAtomContext name = ctx.nameAtom();
         allocPtrArray.add(visit(name));
         NottscriptParser.ArrayIndexContext arrayIndex = ctx.arrayIndex();
@@ -483,6 +426,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitDeallocPtr(NottscriptParser.DeallocPtrContext ctx) {
         Ast.DeallocPtr deallocPtr = new Ast.DeallocPtr();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
+        deallocPtr.add(visit(nodeAtom));
         NottscriptParser.NameAtomContext name = ctx.nameAtom();
         deallocPtr.add(visit(name));
         return deallocPtr;
@@ -734,5 +679,10 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     public Ast visitNameAtom(NottscriptParser.NameAtomContext ctx) {
         String name = ctx.getText();
         return new Ast.Atom.nameAtom(name);
+    }
+    @Override
+    public Ast visitNodeAtom(NottscriptParser.NodeAtomContext ctx){
+        String nodeType = ctx.getText();
+        return new Ast.Atom.nodeAtom(nodeType);
     }
 }

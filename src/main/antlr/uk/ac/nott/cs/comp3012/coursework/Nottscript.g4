@@ -1,39 +1,39 @@
 grammar Nottscript;
 //Parser rules
 program: (unit)+ EOF;
-unit: PROGRAM nameAtom declaration* statement* END PROGRAM nameAtom #programBlock
-      | FUNCTION nameAtom LEFTBRACKET declaratorParamList? RIGHTBRACKET declaration* statement* END FUNCTION nameAtom #voidFuncBlock
-      | FUNCTION nameAtom LEFTBRACKET declaratorParamList? RIGHTBRACKET RESULT LEFTBRACKET nameAtom RIGHTBRACKET declaration* statement* END FUNCTION nameAtom #returnFuncBlock
-      | SUBROUTINE nameAtom LEFTBRACKET declaratorParamList? RIGHTBRACKET declaration* statement* END SUBROUTINE nameAtom #subrtBlock
-      | TYPE nameAtom declaration+ END TYPE nameAtom #customTypeDeclBlock;
+unit: nodeAtom nameAtom declaration* statement* END nodeAtom nameAtom #programBlock
+      | nodeAtom nameAtom LEFTBRACKET declaratorParamList? RIGHTBRACKET declaration* statement* END nodeAtom nameAtom #voidFuncBlock
+      | nodeAtom nameAtom LEFTBRACKET declaratorParamList? RIGHTBRACKET nodeAtom LEFTBRACKET nameAtom RIGHTBRACKET declaration* statement* END nodeAtom nameAtom #returnFuncBlock
+      | nodeAtom nameAtom LEFTBRACKET declaratorParamList? RIGHTBRACKET declaration* statement* END nodeAtom nameAtom #subrtBlock
+      | nodeAtom nameAtom declaration+ nodeAtom nameAtom #customTypeDeclBlock;
 declaratorParamList: nameAtom (COMMA nameAtom)*;
 //Declarations
 declaration: typeSpec DBLCOL nameAtom (COMMA nameAtom)* #declareVar
-            | typeSpec POINTER DBLCOL nameAtom (COMMA nameAtom)* #declPtr
+            | typeSpec nodeAtom DBLCOL nameAtom (COMMA nameAtom)* #declPtr
             | typeSpec LEFTBRACKET numAtom (COMMA numAtom)* RIGHTBRACKET DBLCOL nameAtom (COMMA nameAtom)* #declArray
-            | typeSpec (LEFTBRACKET star (COMMA star)* RIGHTBRACKET) POINTER DBLCOL nameAtom (COMMA nameAtom)* #declPtrArray;
+            | typeSpec (LEFTBRACKET star (COMMA star)* RIGHTBRACKET) nodeAtom DBLCOL nameAtom (COMMA nameAtom)* #declPtrArray;
 typeSpec:   typeAtom #inbuilt
-                |TYPE LEFTBRACKET nameAtom RIGHTBRACKET #custom;
+                |nodeAtom LEFTBRACKET nameAtom RIGHTBRACKET #custom;
 //All the statements
-statement: nameAtom ASSIGN expr #baseAssign
-           | array ASSIGN expr #arrayAssign
-           | nameAtom FIELDACCESS nameAtom ASSIGN expr #ctAssign
-           | nameAtom FIELDACCESS array ASSIGN expr #ctArrayAssign
-           | CALL nameAtom LEFTBRACKET paramList? RIGHTBRACKET #call
-           | IF LEFTBRACKET expr RIGHTBRACKET THEN statement+ END IF #ifBlock
-           | IF LEFTBRACKET expr RIGHTBRACKET THEN statement+ elseStmt END IF #ifElse
-           | IF LEFTBRACKET expr RIGHTBRACKET statement #ifStmt
-           | DO nameAtom ASSIGN doParam COMMA doParam COMMA doParam statement+ END DO #doIncrN1
-           | DO nameAtom ASSIGN doParam COMMA doParam statement+ END DO #doIncr1
-           | DO WHILE LEFTBRACKET expr RIGHTBRACKET statement+ END DO #doWhile
-           | READ readParam (COMMA readParam)* #read
-           | WRITE expr (COMMA expr)* #write
-           | ALLOCATE nameAtom #allocPtr
-           | ALLOCATE nameAtom COMMA arrayIndex #allocPtrArray
-           | DEALLOCATE nameAtom #deallocPtr
+statement: nameAtom nodeAtom expr #baseAssign
+           | array nodeAtom expr #arrayAssign
+           | nameAtom FIELDACCESS nameAtom nodeAtom expr #ctAssign
+           | nameAtom FIELDACCESS array nodeAtom expr #ctArrayAssign
+           | nodeAtom nameAtom LEFTBRACKET paramList? RIGHTBRACKET #call
+           | nodeAtom LEFTBRACKET expr RIGHTBRACKET nodeAtom statement+ nodeAtom nodeAtom #ifBlock
+           | nodeAtom LEFTBRACKET expr RIGHTBRACKET nodeAtom statement+ elseStmt nodeAtom nodeAtom #ifElse
+           | nodeAtom LEFTBRACKET expr RIGHTBRACKET statement #ifStmt
+           | nodeAtom nameAtom ASSIGN doParam COMMA doParam COMMA doParam statement+ nodeAtom nodeAtom #doIncrN1
+           | nodeAtom nameAtom ASSIGN doParam COMMA doParam statement+ nodeAtom nodeAtom #doIncr1
+           | nodeAtom nodeAtom LEFTBRACKET expr RIGHTBRACKET statement+ nodeAtom nodeAtom #doWhile
+           | nodeAtom readParam (COMMA readParam)* #read
+           | nodeAtom expr (COMMA expr)* #write
+           | nodeAtom nameAtom #allocPtr
+           | nodeAtom nameAtom COMMA arrayIndex #allocPtrArray
+           | nodeAtom nameAtom #deallocPtr
            | nameAtom LEFTBRACKET paramList? RIGHTBRACKET #funcCall;
 
-elseStmt: ELSE statement+;//Done
+elseStmt: nodeAtom statement+;//Done
 doParam: (intnum|nameAtom);//Done
 readParam: (nameAtom|array);//Done
 arrayIndex: (numAtom|nameAtom);//Done
@@ -69,6 +69,29 @@ addSubOp: PLUS|MINUS;
 intnum: addSubOp? numAtom;
 numAtom: USIGNINT;
 nameAtom: NAME;
+nodeAtom:
+         ALLOCATE
+       | BREAK
+       | CALL
+       | CHARACTER
+       | DEALLOCATE
+       | DO
+       | ELSE
+       | END
+       | FUNCTION
+       | IF
+       | INTEGER
+       | LOGICAL
+       | POINTER
+       | PROGRAM
+       | READ
+       | REAL
+       | RESULT
+       | SUBROUTINE
+       | THEN
+       | TYPE
+       | WHILE
+       | WRITE;
 //Lexer rules
 //Keywords
 ALLOCATE: 'allocate';
