@@ -34,6 +34,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
 
     /**
      * Recursively walk the generated AST and find the path to all terminals, filling in non-terminals on the way. Add terminal values to the path when discovered
+     *
+     *
      * @param curPath The base path (this will be BlockList)
      * @param cNode Current AST node to break down and walk subtree of
      */
