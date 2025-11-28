@@ -18,6 +18,7 @@ public class SymbolTable {
         this.parent = parent;
         this.children = new ArrayList<SymbolTable>();
         this.symbols = new HashMap<String, SymbolData>();
+        this.parent.addChild(this);
     }
     public void define(String symName,SymbolData data){
         this.symbols.put(symName, data);

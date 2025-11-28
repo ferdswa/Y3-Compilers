@@ -1,16 +1,11 @@
 package uk.ac.nott.cs.comp3012.coursework;
 
-import org.apache.commons.collections4.ListUtils;
 import uk.ac.nott.cs.comp3012.coursework.ast.Ast;
 import uk.ac.nott.cs.comp3012.coursework.ast.AstBuilder;
-import uk.ac.nott.cs.comp3012.coursework.util.Node;
 import uk.ac.nott.cs.comp3012.coursework.util.SymbolData;
 import uk.ac.nott.cs.comp3012.coursework.util.SymbolTable;
 
-import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Frontend {
     ArrayList<String> listPaths = new ArrayList<>();
