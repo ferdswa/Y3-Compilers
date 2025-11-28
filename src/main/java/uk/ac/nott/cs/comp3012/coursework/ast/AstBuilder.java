@@ -217,8 +217,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitBaseAssign(NottscriptParser.BaseAssignContext ctx) {
         Ast.NormalAssign normalAssign = new Ast.NormalAssign();
-        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
-        normalAssign.add(visit(nodeAtom));
+        Ast.Atom.nodeAtom assignNode = new Ast.Atom.nodeAtom("assign");
+        normalAssign.add(assignNode);
         NottscriptParser.NameAtomContext name = ctx.nameAtom();
         normalAssign.add(visit(name));
         NottscriptParser.ExprContext expr = ctx.expr();
@@ -228,8 +228,8 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitArrayAssign(NottscriptParser.ArrayAssignContext ctx) {
         Ast.ArrayAssign arrayAssign = new Ast.ArrayAssign();
-        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
-        arrayAssign.add(visit(nodeAtom));
+        Ast.Atom.nodeAtom assignNode = new Ast.Atom.nodeAtom("assign");
+        arrayAssign.add(assignNode);
         NottscriptParser.ArrayContext array = ctx.array();
         arrayAssign.add(visit(array));
         NottscriptParser.ExprContext expr = ctx.expr();

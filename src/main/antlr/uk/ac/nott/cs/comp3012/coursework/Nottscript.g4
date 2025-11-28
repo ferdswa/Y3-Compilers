@@ -15,8 +15,8 @@ declaration: typeSpec DBLCOL nameAtom (COMMA nameAtom)* #declareVar
 typeSpec:   typeAtom #inbuilt
                 |nodeAtom LEFTBRACKET nameAtom RIGHTBRACKET #custom;
 //All the statements
-statement: nameAtom nodeAtom expr #baseAssign
-           | array nodeAtom expr #arrayAssign
+statement: nameAtom ASSIGN expr #baseAssign
+           | array ASSIGN expr #arrayAssign
            | nameAtom FIELDACCESS nameAtom nodeAtom expr #ctAssign
            | nameAtom FIELDACCESS array nodeAtom expr #ctArrayAssign
            | nodeAtom nameAtom LEFTBRACKET paramList? RIGHTBRACKET #call
