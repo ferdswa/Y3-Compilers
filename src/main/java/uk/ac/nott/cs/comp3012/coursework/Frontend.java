@@ -24,15 +24,27 @@ public class Frontend {
             switch(unit){
                 case Ast.FuncRValueUnit funcRValueUnit -> {
                     newST.define("unit"+ast.indexOf(funcRValueUnit),new SymbolData(funcRValueUnit.getClass().getSimpleName(),"nodeAtom"));
+                    funcRValueUnit.forEach(subAst -> {
+                        PrintPathToNode(subAst,newST);
+                    });
                 }
                 case Ast.FuncRVoidUnit funcRVoidUnit -> {
                     newST.define("unit"+ast.indexOf(funcRVoidUnit),new SymbolData(funcRVoidUnit.getClass().getSimpleName(),"nodeAtom"));
+                    funcRVoidUnit.forEach(subAst -> {
+                        PrintPathToNode(subAst,newST);
+                    });
                 }
                 case Ast.ProgramUnit programUnit -> {
                     newST.define("unit"+ast.indexOf(programUnit),new SymbolData(programUnit.getClass().getSimpleName(),"nodeAtom"));
+                    programUnit.forEach(subAst -> {
+                        PrintPathToNode(subAst,newST);
+                    });
                 }
                 case Ast.CustomTypeDefUnit customTypeDefUnit -> {
                     newST.define("unit"+ast.indexOf(customTypeDefUnit),new SymbolData(customTypeDefUnit.getClass().getSimpleName(),"nodeAtom"));
+                    customTypeDefUnit.forEach(subAst -> {
+                        PrintPathToNode(subAst,newST);
+                    });
                 }
                 default -> throw new IllegalStateException("Unexpected value: " + unit);
             }
@@ -51,141 +63,235 @@ public class Frontend {
         switch(cNode){
             case Ast.FuncDefineParams funcDefineParams -> {
                 symbolTable.define("functionParamList",new SymbolData(funcDefineParams.getClass().getSimpleName(),"parameterList"));
-                PrintPathToNode(funcDefineParams.getFirst(),symbolTable);
+                funcDefineParams.forEach(funcDefineParam -> {
+                    PrintPathToNode(funcDefineParam,symbolTable);
+                });
             }
             case Ast.DeclareVariable declareVariable -> {
                 symbolTable.define("declareVariable",new SymbolData(declareVariable.getClass().getSimpleName(),"declaration"));
-                PrintPathToNode(declareVariable.getFirst(),symbolTable);
+                declareVariable.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });
             }
             case Ast.DeclarePointer declarePointer -> {
                 symbolTable.define("declarePointer",new SymbolData(declarePointer.getClass().getSimpleName(),"declaration"));
-                PrintPathToNode(declarePointer.getFirst(),symbolTable);
+                declarePointer.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });
             }
             case Ast.DeclareArray declareArray -> {
                 symbolTable.define("declareArray",new SymbolData(declareArray.getClass().getSimpleName(),"declaration"));
-                PrintPathToNode(declareArray.getFirst(),symbolTable);
+                declareArray.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });
             }
             case Ast.DeclarePointerArray declPtr -> {
                 symbolTable.define("declarePointerArray",new SymbolData(declPtr.getClass().getSimpleName(),"declaration"));
-                PrintPathToNode(declPtr.getFirst(),symbolTable);
+                declPtr.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });
             }
             case Ast.InbuiltTypeSpec inbuiltTypeSpec -> {
                 symbolTable.define("inbuiltType", new SymbolData(inbuiltTypeSpec.getClass().getSimpleName(),"typeSpec"));
-                PrintPathToNode(inbuiltTypeSpec.getFirst(),symbolTable);
+                inbuiltTypeSpec.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });
             }
             case Ast.CustomTypeSpec customTypeSpec -> {
                 symbolTable.define("customType", new SymbolData(customTypeSpec.getClass().getSimpleName(),"typeSpec"));
-                PrintPathToNode(customTypeSpec.getFirst(),symbolTable);}
+                customTypeSpec.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });
+            }
             case Ast.NormalAssign normalAssign -> {
                 symbolTable.define("assignVariable", new SymbolData(normalAssign.getClass().getSimpleName(),"assign"));
-                PrintPathToNode(normalAssign.getFirst(),symbolTable); }
+                normalAssign.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });
+            }
             case Ast.ArrayAssign arrayAssign -> {
                 symbolTable.define("assignArray", new SymbolData(arrayAssign.getClass().getSimpleName(),"assign"));
-                PrintPathToNode(arrayAssign.getFirst(),symbolTable);}
+                arrayAssign.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });
+            }
             case Ast.CustomTypeAssign customTypeAssign -> {
                 symbolTable.define("assignCustomType", new SymbolData(customTypeAssign.getClass().getSimpleName(),"assign"));
-                PrintPathToNode(customTypeAssign.getFirst(),symbolTable);}
+                customTypeAssign.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.CustomTypeArrayAssign customTypeArrayAssign->{
                 symbolTable.define("assignCustomTypeArray", new SymbolData(customTypeArrayAssign.getClass().getSimpleName(),"assign"));
-                PrintPathToNode(customTypeArrayAssign.getFirst(),symbolTable);}
+                customTypeArrayAssign.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.SbrtCall sbrtCall -> {
                 symbolTable.define("callSubroutine", new SymbolData(sbrtCall.getClass().getSimpleName(),"call"));
-                PrintPathToNode(sbrtCall.getFirst(),symbolTable);}
+                sbrtCall.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });;}
             case Ast.IfBlock ifBlock -> {
                 symbolTable.define("conditionalJump", new SymbolData(ifBlock.getClass().getSimpleName(),"ifNoElse"));
-                PrintPathToNode(ifBlock.getFirst(),symbolTable);}
+                ifBlock.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.IfElseBlock ifElseBlock -> {
                 symbolTable.define("conditionalJump", new SymbolData(ifElseBlock.getClass().getSimpleName(),"ifWithElse"));
-                PrintPathToNode(ifElseBlock.getFirst(),symbolTable);}
+                ifElseBlock.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.IfStatement ifStatement -> {
                 symbolTable.define("conditionalJump", new SymbolData(ifStatement.getClass().getSimpleName(),"ifSingleExpr"));
-                PrintPathToNode(ifStatement.getFirst(),symbolTable);}
+                ifStatement.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.DoIncr1 doIncr1 -> {
                 symbolTable.define("doIncrementOne",new SymbolData(doIncr1.getClass().getSimpleName(),"do"));
-                PrintPathToNode(doIncr1.getFirst(),symbolTable);}
+                doIncr1.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.DoIncrNot1 doIncrNot1->{
                 symbolTable.define("doIncrementNotOne",new SymbolData(doIncrNot1.getClass().getSimpleName(),"do"));
-                PrintPathToNode(doIncrNot1.getFirst(),symbolTable);}
+                doIncrNot1.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.DoWhile doWhile -> {
                 symbolTable.define("doWhile",new SymbolData(doWhile.getClass().getSimpleName(),"do"));
-                PrintPathToNode(doWhile.getFirst(),symbolTable);}
+                doWhile.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.Read read->{
                 symbolTable.define("read",new SymbolData(read.getClass().getSimpleName(),"IO"));
-                PrintPathToNode(read.getFirst(),symbolTable);}
+                read.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.Write write->{
                 symbolTable.define("write",new SymbolData(write.getClass().getSimpleName(),"IO"));
-                PrintPathToNode(write.getFirst(),symbolTable);}
+                write.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.AllocPtr allocPtr -> {
                 symbolTable.define("allocatePointer",new SymbolData(allocPtr.getClass().getSimpleName(),"allocation"));
-                PrintPathToNode(allocPtr.getFirst(),symbolTable);}
+                allocPtr.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.DeallocPtr deallocPtr -> {
                 symbolTable.define("deAllocatePointer",new SymbolData(deallocPtr.getClass().getSimpleName(),"deallocation"));
-                PrintPathToNode(deallocPtr.getFirst(),symbolTable);}
+                deallocPtr.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.AllocPtrArray allocPtrArray -> {
                 symbolTable.define("allocatePointerArray",new SymbolData(allocPtrArray.getClass().getSimpleName(),"allocation"));
-                PrintPathToNode(allocPtrArray.getFirst(),symbolTable);}
+                allocPtrArray.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.FuncCall funcCall -> {
                 symbolTable.define("callFunction",new SymbolData(funcCall.getClass().getSimpleName(),"call"));
-                PrintPathToNode(funcCall.getFirst(),symbolTable);}
+                funcCall.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.ElseStmt elseStmt -> {
                 symbolTable.define("elseBlock",new SymbolData(elseStmt.getClass().getSimpleName(),"else"));
-                PrintPathToNode(elseStmt.getFirst(),symbolTable);}
+                elseStmt.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.DoParam doParam -> {
                 symbolTable.define("doParamList",new SymbolData(doParam.getClass().getSimpleName(),"parameterList"));
-                PrintPathToNode(doParam.getFirst(),symbolTable);}
+                doParam.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.ReadParam readParam -> {
                 symbolTable.define("readParamList",new SymbolData(readParam.getClass().getSimpleName(),"parameterList"));
-                PrintPathToNode(readParam.getFirst(),symbolTable);}
+                readParam.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.ArrayIndex arrayIndex -> {
                 symbolTable.define("arrayIndex",new SymbolData(arrayIndex.getClass().getSimpleName(),"arrayIndexer"));
-                PrintPathToNode(arrayIndex.getFirst(),symbolTable);}
+                arrayIndex.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.ArrayDef arrayDef -> {
                 symbolTable.define("array",new SymbolData(arrayDef.getClass().getSimpleName(),"array"));
-                PrintPathToNode(arrayDef.getFirst(),symbolTable);}
+                arrayDef.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.ParamSubList paramSubList->{
                 symbolTable.define("parameterSubList",new SymbolData(paramSubList.getClass().getSimpleName(),"parameterSubList"));
-                PrintPathToNode(paramSubList.getFirst(),symbolTable);}
+                paramSubList.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.ParamList paramList -> {
                 symbolTable.define("parameterList",new SymbolData(paramList.getClass().getSimpleName(),"parameterList"));
-                PrintPathToNode(paramList.getFirst(),symbolTable);}
+                paramList.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.Expr expr-> {
                 symbolTable.define("topLevelExpression",new SymbolData(expr.getClass().getSimpleName(),"expression"));
-                PrintPathToNode(expr.getFirst(),symbolTable);}
+                expr.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.LogExpr logExpr -> {
                 symbolTable.define("logicalExpression",new SymbolData(logExpr.getClass().getSimpleName(),"expression"));
-                PrintPathToNode(logExpr.getFirst(),symbolTable);}
+                logExpr.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.RelExpr relExpr -> {
                 symbolTable.define("relativeExpression",new SymbolData(relExpr.getClass().getSimpleName(),"expression"));
-                PrintPathToNode(relExpr.getFirst(),symbolTable);}
+                relExpr.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.ConcatExpr concatExpr ->
             {
                 symbolTable.define("concatenationExpression",new SymbolData(concatExpr.getClass().getSimpleName(),"expression"));
-                PrintPathToNode(concatExpr.getFirst(),symbolTable);}
+                concatExpr.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.AddSubExpr addSubExpr -> {
                 symbolTable.define("additionSubtractionExpression",new SymbolData(addSubExpr.getClass().getSimpleName(),"expression"));
-                PrintPathToNode(addSubExpr.getFirst(),symbolTable);}
+                addSubExpr.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.MulDivExpr mulDivExpr -> {
                 symbolTable.define("multiplyDivideExpression",new SymbolData(mulDivExpr.getClass().getSimpleName(),"expression"));
-                PrintPathToNode(mulDivExpr.getFirst(),symbolTable);}
+                mulDivExpr.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.PowExpr powExpr -> {
                 symbolTable.define("exponentExpression",new SymbolData(powExpr.getClass().getSimpleName(),"expression"));
-                PrintPathToNode(powExpr.getFirst(),symbolTable);}
+                powExpr.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.FieldAccessExpr fieldAccessExpr ->
             {
                 symbolTable.define("fieldAccessExpression",new SymbolData(fieldAccessExpr.getClass().getSimpleName(),"expression"));
-                PrintPathToNode(fieldAccessExpr.getFirst(),symbolTable);}
+                fieldAccessExpr.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.IntNum intNum -> {
                 symbolTable.define("intNum",new SymbolData(intNum.getClass().getSimpleName(),"expression"));
-                PrintPathToNode(intNum.getFirst(),symbolTable);}
+                intNum.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
+            case Ast.IntSExpr intSExpr -> {
+                symbolTable.define("intNum",new SymbolData(intSExpr.getClass().getSimpleName(),"expression"));
+                intSExpr.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.ExprSExpr exprSExpr -> {
                 symbolTable.define("exprSExpression",new SymbolData(exprSExpr.getClass().getSimpleName(),"expression"));
-                PrintPathToNode(exprSExpr.getFirst(),symbolTable);}
+                exprSExpr.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.FuncSExpr funcSExpr -> {
                 symbolTable.define("funcSExpression",new SymbolData(funcSExpr.getClass().getSimpleName(),"expression"));
-                PrintPathToNode(funcSExpr.getFirst(),symbolTable);}
+                funcSExpr.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.NameSExpr nameSExpr -> {
                 symbolTable.define("nameSExpression",new SymbolData(nameSExpr.getClass().getSimpleName(),"expression"));
-                PrintPathToNode(nameSExpr.getFirst(),symbolTable);}
+                nameSExpr.forEach(subAst -> {
+                    PrintPathToNode(subAst,symbolTable);
+                });}
             case Ast.Atom.nameAtom nameAtom -> {
                 symbolTable.define("nameAtom",new SymbolData(nameAtom.getClass().getSimpleName(),"atomic",nameAtom.name()));
             }
@@ -231,7 +337,7 @@ public class Frontend {
             case Ast.Atom.nodeAtom nodeAtom -> {
                 symbolTable.define(nodeAtom.nodeType(), new SymbolData(nodeAtom.getClass().getSimpleName(),"node", nodeAtom.nodeType()));
             }
-            default -> throw new IllegalStateException("Unexpected value: " + cNode);
+            default -> throw new IllegalStateException("Unexpected value: " + cNode.getClass().getSimpleName());
         }
     }
 }
