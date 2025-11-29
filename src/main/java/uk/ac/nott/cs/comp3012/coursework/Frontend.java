@@ -2,6 +2,7 @@ package uk.ac.nott.cs.comp3012.coursework;
 
 import uk.ac.nott.cs.comp3012.coursework.ast.Ast;
 import uk.ac.nott.cs.comp3012.coursework.ast.AstBuilder;
+import uk.ac.nott.cs.comp3012.coursework.types.TypeChecker;
 import uk.ac.nott.cs.comp3012.coursework.util.SymbolTable;
 
 import java.util.*;
