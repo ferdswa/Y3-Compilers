@@ -6,7 +6,7 @@ import java.util.Collection;
 /**
  * Base interface type for all AST classes. Modify it, delete it, or do whatever you want with it.
  */
-public interface Ast {
+public interface Ast{
     sealed interface Atom extends Ast{
         //numbers
         record numAtom(int i) implements Atom {

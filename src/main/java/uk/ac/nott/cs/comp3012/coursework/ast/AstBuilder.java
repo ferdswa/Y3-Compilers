@@ -14,6 +14,7 @@ import java.util.ArrayList;
 public class AstBuilder extends NottscriptBaseVisitor<Ast>
 {
     SymbolTable intSymbolTable;
+    String cType;
     public AstBuilder(SymbolTable symbolTable){
         intSymbolTable = symbolTable;
     }
@@ -59,6 +60,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         for(NottscriptParser.DeclarationContext declarationContext : ctx.declaration()){
             block.add(visit(declarationContext));
         }
+        cType = "ALL_DECLARED";
         for(NottscriptParser.StatementContext statementContext : ctx.statement()){
             block.add(visit(statementContext));
         }
@@ -216,6 +218,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitInbuilt(NottscriptParser.InbuiltContext ctx) {
         Ast.InbuiltTypeSpec inbuiltTypeSpec = new Ast.InbuiltTypeSpec();
+        cType = ctx.getChild(0).getText();
         NottscriptParser.TypeAtomContext type = ctx.typeAtom();
         inbuiltTypeSpec.add(visit(type));
         return inbuiltTypeSpec;
@@ -223,6 +226,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitCustom(NottscriptParser.CustomContext ctx){
         Ast.CustomTypeSpec customTypeSpec = new Ast.CustomTypeSpec();
+        cType = ctx.getChild(0).getText();
         NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
         customTypeSpec.add(visit(nodeAtom));
         NottscriptParser.NameAtomContext name =  ctx.nameAtom();
@@ -690,7 +694,14 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitNameAtom(NottscriptParser.NameAtomContext ctx) {
         String name = ctx.getText();
-        intSymbolTable.getChildren().getLast().define(name,new SymbolData(name,"name",name,intSymbolTable.getChildren().getLast().getScopeName()));
+        if(ctx.getParent() instanceof NottscriptParser.NameUnitContext){
+            intSymbolTable.getChildren().getLast().define(name,new SymbolData(name,name,"unitID",intSymbolTable.getChildren().getLast().getScopeName() + ctx.parent.getChild(1).getText(), ctx.parent.getChild(0).getText()));
+        }
+        else{
+            if(!cType.equals("ALL_DECLARED")){//Declaration section of code
+                intSymbolTable.getChildren().getLast().define(name,new SymbolData(name,cType.toLowerCase(),name,intSymbolTable.getChildren().getLast().getSymbols().values().iterator().next().scope));
+            }
+        }
         return new Ast.Atom.nameAtom(name);
     }
     @Override
