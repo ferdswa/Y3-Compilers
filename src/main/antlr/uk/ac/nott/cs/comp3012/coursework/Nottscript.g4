@@ -1,12 +1,13 @@
 grammar Nottscript;
 //Parser rules
 program: (unit)+ EOF;
-unit: nodeAtom nameAtom declaration* statement* END nodeAtom nameAtom #programBlock
-      | nodeAtom nameAtom LEFTBRACKET declaratorParamList? RIGHTBRACKET declaration* statement* END nodeAtom nameAtom #voidFuncBlock
-      | nodeAtom nameAtom LEFTBRACKET declaratorParamList? RIGHTBRACKET nodeAtom LEFTBRACKET nameAtom RIGHTBRACKET declaration* statement* END nodeAtom nameAtom #returnFuncBlock
-      | nodeAtom nameAtom LEFTBRACKET declaratorParamList? RIGHTBRACKET declaration* statement* END nodeAtom nameAtom #subrtBlock
-      | nodeAtom nameAtom declaration+ nodeAtom nameAtom #customTypeDeclBlock;
+unit: nameUnit declaration* statement* END nameUnit #programBlock
+      | nameUnit LEFTBRACKET declaratorParamList? RIGHTBRACKET declaration* statement* END nameUnit #voidFuncBlock
+      | nameUnit LEFTBRACKET declaratorParamList? RIGHTBRACKET nodeAtom LEFTBRACKET nameAtom RIGHTBRACKET declaration* statement* END nameUnit #returnFuncBlock
+      | nameUnit LEFTBRACKET declaratorParamList? RIGHTBRACKET declaration* statement* END nameUnit #subrtBlock
+      | nameUnit declaration+ nameUnit #customTypeDeclBlock;
 declaratorParamList: nameAtom (COMMA nameAtom)*;
+nameUnit: nodeAtom nameAtom ;
 //Declarations
 declaration: typeSpec DBLCOL nameAtom (COMMA nameAtom)* #declareVar
             | typeSpec nodeAtom DBLCOL nameAtom (COMMA nameAtom)* #declPtr
@@ -26,8 +27,8 @@ statement: nameAtom ASSIGN expr #baseAssign
            | nodeAtom nameAtom ASSIGN doParam COMMA doParam COMMA doParam statement+ nodeAtom nodeAtom #doIncrN1
            | nodeAtom nameAtom ASSIGN doParam COMMA doParam statement+ nodeAtom nodeAtom #doIncr1
            | nodeAtom nodeAtom LEFTBRACKET expr RIGHTBRACKET statement+ nodeAtom nodeAtom #doWhile
-           | nodeAtom readParam (COMMA readParam)* #read
-           | nodeAtom expr (COMMA expr)* #write
+           | READ readParam (COMMA readParam)* #read
+           | WRITE expr (COMMA expr)* #write
            | nodeAtom nameAtom #allocPtr
            | nodeAtom nameAtom COMMA arrayIndex #allocPtrArray
            | nodeAtom nameAtom #deallocPtr

@@ -438,6 +438,14 @@ public interface Ast {
             super(elems);
         }
     }
+    class NameUnit  extends ArrayList<Ast> implements Ast {
+        public NameUnit() {
+            super();
+        }
+        public NameUnit(Collection<? extends Ast> elems) {
+            super(elems);
+        }
+    }
     //Program is a list of blocks
     final class Units extends ArrayList<Ast> implements Ast {
         public Units() {

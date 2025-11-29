@@ -6,13 +6,21 @@ import org.antlr.v4.runtime.TokenStream;
 import uk.ac.nott.cs.comp3012.coursework.NottscriptBaseVisitor;
 import uk.ac.nott.cs.comp3012.coursework.NottscriptLexer;
 import uk.ac.nott.cs.comp3012.coursework.NottscriptParser;
+import uk.ac.nott.cs.comp3012.coursework.util.SymbolData;
+import uk.ac.nott.cs.comp3012.coursework.util.SymbolTable;
 
 import java.util.ArrayList;
 
 public class AstBuilder extends NottscriptBaseVisitor<Ast>
 {
+    SymbolTable intSymbolTable;
+    public AstBuilder(SymbolTable symbolTable){
+        intSymbolTable = symbolTable;
+    }
 
-    public AstBuilder(){}
+    public SymbolTable getIntSymbolTable() {
+        return intSymbolTable;
+    }
 
     /**
      * Generate an AST for the provided input code file
@@ -31,6 +39,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     //VISIT AST
     @Override
     public Ast visitProgram(NottscriptParser.ProgramContext ctx) {
+        intSymbolTable.setScopeName("entireProgram");
         Ast.Units units = new Ast.Units();
         for(NottscriptParser.UnitContext uctx : ctx.unit()){
             Ast elem = visit(uctx);
@@ -43,27 +52,36 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitProgramBlock(NottscriptParser.ProgramBlockContext ctx) {
         Ast.ProgramUnit block = new Ast.ProgramUnit();
-        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom(0);
-        block.add(visit(nodeAtom));
-        NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom().getFirst();
-        block.add(visit(openNameContext));
+        SymbolTable st = new SymbolTable(intSymbolTable);
+        st.setScopeName("programBlock");
+        NottscriptParser.NameUnitContext nctx = ctx.nameUnit(0);
+        block.add(visit(nctx));
         for(NottscriptParser.DeclarationContext declarationContext : ctx.declaration()){
             block.add(visit(declarationContext));
         }
         for(NottscriptParser.StatementContext statementContext : ctx.statement()){
             block.add(visit(statementContext));
         }
-        NottscriptParser.NameAtomContext closeNameContext = ctx.nameAtom().getLast();
-        block.add(visit(closeNameContext));
+        NottscriptParser.NameUnitContext nctx2 = ctx.nameUnit(1);
+        block.add(visit(nctx2));
         return block;
+    }
+    @Override
+    public Ast visitNameUnit(NottscriptParser.NameUnitContext ctx) {
+        Ast.NameUnit  nameUnit = new Ast.NameUnit();
+        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
+        nameUnit.add(visit(nodeAtom));
+        NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom();
+        nameUnit.add(visit(openNameContext));
+        return nameUnit;
     }
     @Override
     public Ast visitVoidFuncBlock(NottscriptParser.VoidFuncBlockContext ctx) {
         Ast.FuncRVoidUnit fvUnit = new Ast.FuncRVoidUnit();
-        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom(0);
-        fvUnit.add(visit(nodeAtom));
-        NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom().getFirst();
-        fvUnit.add(visit(openNameContext));
+        SymbolTable st = new SymbolTable(intSymbolTable);
+        st.setScopeName("voidFuncBlock");
+        NottscriptParser.NameUnitContext nctx = ctx.nameUnit(0);
+        fvUnit.add(visit(nctx));
         if(ctx.declaratorParamList()!=null){
             NottscriptParser.DeclaratorParamListContext declParams= ctx.declaratorParamList();
             fvUnit.add(visit(declParams));
@@ -74,40 +92,38 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         for(NottscriptParser.StatementContext statementContext : ctx.statement()){
             fvUnit.add(visit(statementContext));
         }
-        NottscriptParser.NameAtomContext closeNameContext = ctx.nameAtom().getLast();
-        fvUnit.add(visit(closeNameContext));
+        NottscriptParser.NameUnitContext nctx2 = ctx.nameUnit(0);
+        fvUnit.add(visit(nctx2));
         return fvUnit;
     }
     @Override
     public Ast visitReturnFuncBlock(NottscriptParser.ReturnFuncBlockContext ctx) {
         Ast.FuncRValueUnit ftUnit = new Ast.FuncRValueUnit();
-        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom(0);
-        ftUnit.add(visit(nodeAtom));
-        NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom().getFirst();
-        ftUnit.add(visit(openNameContext));
+        SymbolTable st = new SymbolTable(intSymbolTable);
+        st.setScopeName("rFuncBlock");
+        NottscriptParser.NameUnitContext nctx = ctx.nameUnit(0);
+        ftUnit.add(visit(nctx));
         if(ctx.declaratorParamList()!=null){
             NottscriptParser.DeclaratorParamListContext declParams= ctx.declaratorParamList();
             ftUnit.add(visit(declParams));
         }
-        NottscriptParser.NameAtomContext resultNameCtx = ctx.nameAtom(1);
-        ftUnit.add(visit(resultNameCtx));
         for(NottscriptParser.DeclarationContext declarationContext : ctx.declaration()){
             ftUnit.add(visit(declarationContext));
         }
         for(NottscriptParser.StatementContext statementContext : ctx.statement()){
             ftUnit.add(visit(statementContext));
         }
-        NottscriptParser.NameAtomContext closeNameContext = ctx.nameAtom().getLast();
-        ftUnit.add(visit(closeNameContext));
+        NottscriptParser.NameUnitContext nctx2 = ctx.nameUnit(0);
+        ftUnit.add(visit(nctx2));
         return ftUnit;
     }
     @Override
     public Ast visitSubrtBlock(NottscriptParser.SubrtBlockContext ctx) {
         Ast.SbrtUnit sbrtUnit = new Ast.SbrtUnit();
-        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom(0);
-        sbrtUnit.add(visit(nodeAtom));
-        NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom().getFirst();
-        sbrtUnit.add(visit(openNameContext));
+        SymbolTable st = new SymbolTable(intSymbolTable);
+        st.setScopeName("subrtBlock");
+        NottscriptParser.NameUnitContext nctx = ctx.nameUnit(0);
+        sbrtUnit.add(visit(nctx));
         if(ctx.declaratorParamList()!=null){
             NottscriptParser.DeclaratorParamListContext declParams= ctx.declaratorParamList();
             sbrtUnit.add(visit(declParams));
@@ -118,22 +134,22 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         for(NottscriptParser.StatementContext statementContext : ctx.statement()){
             sbrtUnit.add(visit(statementContext));
         }
-        NottscriptParser.NameAtomContext closeNameContext = ctx.nameAtom().getLast();
-        sbrtUnit.add(visit(closeNameContext));
+        NottscriptParser.NameUnitContext nctx2 = ctx.nameUnit(0);
+        sbrtUnit.add(visit(nctx2));
         return sbrtUnit;
     }
     @Override
     public Ast visitCustomTypeDeclBlock(NottscriptParser.CustomTypeDeclBlockContext ctx) {
         Ast.CustomTypeDefUnit ctUnit = new Ast.CustomTypeDefUnit();
-        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom(0);
-        ctUnit.add(visit(nodeAtom));
-        NottscriptParser.NameAtomContext openNameContext = ctx.nameAtom(0);
-        ctUnit.add(visit(openNameContext));
+        SymbolTable st = new SymbolTable(intSymbolTable);
+        st.setScopeName("customTypeDef");
+        NottscriptParser.NameUnitContext nctx = ctx.nameUnit(0);
+        ctUnit.add(visit(nctx));
         for(NottscriptParser.DeclarationContext declarationContext : ctx.declaration()){
             ctUnit.add(visit(declarationContext));
         }
-        NottscriptParser.NameAtomContext closeNameContext = ctx.nameAtom(1);
-        ctUnit.add(visit(closeNameContext));
+        NottscriptParser.NameUnitContext nctx2 = ctx.nameUnit(0);
+        ctUnit.add(visit(nctx2));
         return ctUnit;
     }
     @Override
@@ -386,8 +402,6 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitRead(NottscriptParser.ReadContext ctx) {
         Ast.Read read = new Ast.Read();
-        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
-        read.add(visit(nodeAtom));
         for(NottscriptParser.ReadParamContext readParamContext : ctx.readParam()){
             read.add(visit(readParamContext));
         }
@@ -396,8 +410,6 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitWrite(NottscriptParser.WriteContext ctx) {
         Ast.Write write = new Ast.Write();
-        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
-        write.add(visit(nodeAtom));
         for(NottscriptParser.ExprContext expr : ctx.expr()){
             write.add(visit(expr));
         }
@@ -678,6 +690,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitNameAtom(NottscriptParser.NameAtomContext ctx) {
         String name = ctx.getText();
+        intSymbolTable.getChildren().getLast().define(name,new SymbolData(name,"name",name,intSymbolTable.getChildren().getLast().getScopeName()));
         return new Ast.Atom.nameAtom(name);
     }
     @Override
