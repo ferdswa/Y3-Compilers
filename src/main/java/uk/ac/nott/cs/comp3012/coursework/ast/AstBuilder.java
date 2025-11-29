@@ -10,6 +10,7 @@ import uk.ac.nott.cs.comp3012.coursework.util.SymbolData;
 import uk.ac.nott.cs.comp3012.coursework.util.SymbolTable;
 
 import java.util.ArrayList;
+import java.util.HexFormat;
 
 public class AstBuilder extends NottscriptBaseVisitor<Ast>
 {
@@ -581,12 +582,21 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitLogicSExpr(NottscriptParser.LogicSExprContext ctx) {
         String boolVal = ctx.getText();
-        return new Ast.Atom.boolAtom(boolVal);
+        boolVal = boolVal.replace(".","");
+        boolean b =  Boolean.parseBoolean(boolVal);
+        return new Ast.Atom.boolAtom(b);
     }
     @Override
     public Ast visitHexSExpr(NottscriptParser.HexSExprContext ctx) {
         String hexVal = ctx.getText();
+        hexVal = hexVal.replace("z","");
         return new Ast.Atom.hexNumAtom(hexVal);
+    }
+    @Override
+    public Ast visitOctSExpr(NottscriptParser.OctSExprContext ctx) {
+        String octVal = ctx.getText();
+        octVal = octVal.replace("o","");
+        return new Ast.Atom.octNumAtom(octVal);
     }
     @Override
     public Ast visitRealSExpr(NottscriptParser.RealSExprContext ctx) {
@@ -596,6 +606,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitBinSExpr(NottscriptParser.BinSExprContext ctx) {
         String binVal = ctx.getText();
+        binVal = binVal.replace("b","");
         return new Ast.Atom.binNumAtom(binVal);
     }
     @Override
@@ -699,7 +710,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         }
         else{
             if(!cType.equals("ALL_DECLARED")){//Declaration section of code
-                intSymbolTable.getChildren().getLast().define(name,new SymbolData(name,cType.toLowerCase(),name,intSymbolTable.getChildren().getLast().getSymbols().values().iterator().next().scope));
+                intSymbolTable.getChildren().getLast().define(name,new SymbolData(name,cType.toLowerCase(),null,intSymbolTable.getChildren().getLast().getSymbols().values().iterator().next().scope));
             }
         }
         return new Ast.Atom.nameAtom(name);

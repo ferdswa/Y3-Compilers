@@ -54,6 +54,7 @@ basic: (TRUE|FALSE)  #logicSExpr
        | REALNUM   #realSExpr
        | HEXNUM    #hexSExpr
        | BINNUM    #binSExpr
+       | OCTNUM    #octSExpr
        | STRING    #charSeqSExpr
        | intnum    #intSExpr
        | LEFTBRACKET expr RIGHTBRACKET #exprSExpr

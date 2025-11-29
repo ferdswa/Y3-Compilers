@@ -37,7 +37,7 @@ public interface Ast{
         record logicAtom(String logicVal) implements Atom {
 
         }
-        record boolAtom(String bool) implements Atom {
+        record boolAtom(boolean bool) implements Atom {
 
         }
         //operators

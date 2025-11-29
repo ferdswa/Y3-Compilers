@@ -74,5 +74,6 @@ public interface AstVisitor<T> {
         T visitNumAtom(Ast.Atom.numAtom ctx);
         T visitNameAtom(Ast.Atom.nameAtom ctx);
         T visitNodeAtom(Ast.Atom.nodeAtom ctx);
+        T visitOctAtom(Ast.Atom.octNumAtom ctx);
         T visit(Ast ast);
     }
