@@ -34,6 +34,8 @@ public class Frontend {
                 throw new RuntimeException("Syntax Error: Program units must start and end with the same identifier");
             }
         }
+        TypeChecker typeChecker = new TypeChecker(parent);
+        System.out.println("TypeChecker: "+typeChecker.visitProgram(ast));
         return null;
     }
 }

@@ -5,7 +5,7 @@ import java.util.List;
 public sealed interface Type permits Type.BaseType, Type.ArrayType {
 
     enum BaseType implements Type {
-        Number, Logical, Character
+        Number, Logical, Character, OK
     }
 
     record ArrayType(Type base, List<Integer> dims) implements Type {

@@ -2,7 +2,6 @@ package uk.ac.nott.cs.comp3012.coursework.tac;
 
 import java.util.List;
 import uk.ac.nott.cs.comp3012.coursework.AstVisitor;
-import uk.ac.nott.cs.comp3012.coursework.NottscriptParser;
 import uk.ac.nott.cs.comp3012.coursework.ast.Ast;
 
 public class TacGenerator implements AstVisitor<List<TacInstr>> {
@@ -298,7 +297,7 @@ public class TacGenerator implements AstVisitor<List<TacInstr>> {
     }
 
     @Override
-    public List<TacInstr> visitLogicalOp(Ast.Atom.logicAtom ctx) {
+    public List<TacInstr> visitLogicalOp(Ast.Atom.logicOpAtom ctx) {
         return List.of();
     }
 

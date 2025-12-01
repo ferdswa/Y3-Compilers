@@ -9,10 +9,10 @@ public class SymbolData{
     public String scope;
     public String notes;
 
-    public SymbolData(String name,String value,String type,String scope,String notes){
+    public SymbolData(String name,String type,String value,String scope,String notes){
         this.name=name;
-        this.value = value;
-        this.type = type;
+        this.type=type;
+        this.value=value;
         this.scope=scope;
         this.notes=notes;
     }
@@ -50,8 +50,8 @@ public class SymbolData{
         String str="";
         str+=this.name+" ";
         str+=this.type+" ";
-        str+=this.scope+" ";
         str+=this.value+" ";
+        str+=this.scope+" ";
         str+=this.notes;
         return str;
     }

@@ -34,7 +34,7 @@ public interface Ast{
 
         }
         //logicals
-        record logicAtom(String logicVal) implements Atom {
+        record logicOpAtom(String logicVal) implements Atom {
 
         }
         record boolAtom(boolean bool) implements Atom {
@@ -80,6 +80,16 @@ public interface Ast{
             super(elems);
         }
     }
+
+    class ArraySExpr extends ArrayList<Ast> implements Ast {
+        public ArraySExpr() {
+            super();
+        }
+        public ArraySExpr(Collection<? extends Ast> elems) {
+            super(elems);
+        }
+    }
+
     class ArrayDef extends ArrayList<Ast> implements Ast {
         public ArrayDef() {
             super();

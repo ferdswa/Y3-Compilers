@@ -66,7 +66,7 @@ public interface AstVisitor<T> {
         T visitNameSExpr(Ast.NameSExpr ctx);
         T visitRelativeOp(Ast.Atom.relAtom ctx);
         T visitTypeAtom(Ast.Atom.typeAtom ctx);
-        T visitLogicalOp(Ast.Atom.logicAtom ctx);
+        T visitLogicalOp(Ast.Atom.logicOpAtom ctx);
         T visitMulDivOp(Ast.Atom.mulDivAtom ctx);
         T visitStar(Ast.Atom.starAtom ctx);
         T visitAddSubOp(Ast.Atom.addSubAtom ctx);
