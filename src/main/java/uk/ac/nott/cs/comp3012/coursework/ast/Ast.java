@@ -12,13 +12,13 @@ public interface Ast{
         record numAtom(int i) implements Atom {
 
         }
-        record binNumAtom(String bin) implements Atom {
+        record binNumAtom(int bin) implements Atom {
 
         }
-        record octNumAtom(String oct) implements Atom {
+        record octNumAtom(int oct) implements Atom {
 
         }
-        record hexNumAtom(String hex) implements Atom {
+        record hexNumAtom(int hex) implements Atom {
 
         }
         record realAtom(float f) implements Atom {

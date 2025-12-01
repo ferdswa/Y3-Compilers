@@ -5,29 +5,29 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import uk.ac.nott.cs.comp3012.coursework.ast.Ast;
+import uk.ac.nott.cs.comp3012.coursework.ast.AstBuilder;
+import uk.ac.nott.cs.comp3012.coursework.types.TypeChecker;
+import uk.ac.nott.cs.comp3012.coursework.util.SymbolTable;
 
 /**
  * Base class for a compiler.
  */
 public class Compiler {
 
-    // frontend to use
-    private final Frontend frontend;
     // backend to use
     private final Backend backend;
-
+    SymbolTable parent = new SymbolTable();
     /**
      * Construct a new compiler.
      *
-     * @param frontend frontend to use
      * @param backend  backend to use
      */
-    public Compiler(Frontend frontend, Backend backend) {
-        this.frontend = frontend;
+    public Compiler(Backend backend) {
         this.backend = backend;
     }
 
@@ -40,9 +40,8 @@ public class Compiler {
         String inputFile = args[0];
         String outputFile = args[1];
 
-        Frontend frontend = new  Frontend();
         Backend backend = new   Backend();
-        Compiler compiler = new Compiler(frontend, backend);
+        Compiler compiler = new Compiler(backend);
         compiler.runCompiler(inputFile, outputFile);
     }
 
@@ -61,9 +60,35 @@ public class Compiler {
             line += ' ';
             programText.append(line);
         }
-        System.out.println("Program Text: " + programText);
 
-        Ast program = frontend.runFrontend(programText.toString());
+        //Build the AST
+        AstBuilder astBuilder = new AstBuilder(this.parent);
+        Ast.Units program = (Ast.Units) astBuilder.buildAst(programText.toString());
+        parent = astBuilder.getIntSymbolTable();
+        program.forEach(pUnit -> {//Check that all program units have bodies
+            if(pUnit instanceof ArrayList<?>){
+                if(((ArrayList<?>) pUnit).size()<3){
+                    throw new RuntimeException("Program units without bodies detected");
+                }
+            }
+        });
+        for(SymbolTable puST : parent.getChildren()){//Check that program units start and end with the same ID
+            AtomicInteger numberOfDifferentBlockNames = new AtomicInteger();
+            puST.getSymbols().values().forEach(vName -> {
+                if(vName.type.equals("unitID"))
+                    numberOfDifferentBlockNames.getAndIncrement();
+            });
+            if(numberOfDifferentBlockNames.get()!=1){
+                throw new RuntimeException("Syntax Error: Program units must start and end with the same identifier");
+            }
+            System.out.printf("SymbolTable %s: %s%n",puST.getSymbols().values().iterator().next().scope,puST.getSymbols());
+        }
+        //Ensure all types match
+        TypeChecker typeChecker = new TypeChecker(parent);
+        System.out.println("TypeChecker: "+typeChecker.visitProgram(program));
+
+
+
         byte[] code = backend.runBackend(program);
 
         try (BufferedOutputStream out = new BufferedOutputStream(

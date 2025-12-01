@@ -567,14 +567,16 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     public Ast visitHexSExpr(NottscriptParser.HexSExprContext ctx) {
         String hexVal = ctx.getText();
         hexVal = hexVal.replace("z","");
-        return new Ast.Atom.hexNumAtom(hexVal);
+        return new Ast.Atom.hexNumAtom(hex2Dec(hexVal));
     }
     @Override
     public Ast visitOctSExpr(NottscriptParser.OctSExprContext ctx) {
         String octVal = ctx.getText();
         octVal = octVal.replace("o","");
-        return new Ast.Atom.octNumAtom(octVal);
+        return new Ast.Atom.octNumAtom(oct2Dec(octVal));
     }
+
+
     @Override
     public Ast visitRealSExpr(NottscriptParser.RealSExprContext ctx) {
         float realVal = Float.parseFloat(ctx.getText());
@@ -584,7 +586,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     public Ast visitBinSExpr(NottscriptParser.BinSExprContext ctx) {
         String binVal = ctx.getText();
         binVal = binVal.replace("b","");
-        return new Ast.Atom.binNumAtom(binVal);
+        return new Ast.Atom.binNumAtom(binToDec(binVal));
     }
     @Override
     public Ast visitCharSeqSExpr(NottscriptParser.CharSeqSExprContext ctx) {
@@ -663,6 +665,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         //symbols.add(op);
         return new Ast.Atom.starAtom(op);
     }
+    String sign = "+";
     @Override
     public Ast visitIntnum(NottscriptParser.IntnumContext ctx) {
         Ast.IntNum intNum = new Ast.IntNum();
@@ -676,14 +679,25 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     }
     @Override
     public Ast visitNumAtom(NottscriptParser.NumAtomContext ctx) {
-        int num = Integer.parseInt(ctx.getText());
+        int num = Integer.parseInt(sign + ctx.getText());
         return new Ast.Atom.numAtom(num);
     }
     @Override
     public Ast visitNameAtom(NottscriptParser.NameAtomContext ctx) {
         String name = ctx.getText();
         if((ctx.getParent() instanceof NottscriptParser.NameUnitContext)){
-            intSymbolTable.getChildren().getLast().define(name,new SymbolData(name,"unitID",name,intSymbolTable.getChildren().getLast().getScopeName() + ctx.parent.getChild(1).getText(), ctx.parent.getChild(0).getText()));
+            int countUses =0;
+            for(SymbolTable st: intSymbolTable.getChildren()){
+                if(st.getSymbols().containsKey(name)){
+                    countUses++;
+                }
+            }
+            if(countUses>1){
+                throw new UnsupportedOperationException("Methods may not share names");
+            }
+            else{
+                intSymbolTable.getChildren().getLast().define(name,new SymbolData(name,"unitID",name,intSymbolTable.getChildren().getLast().getScopeName() + "_" + ctx.parent.getChild(1).getText(), ctx.parent.getChild(0).getText()));
+            }
         } else if (ctx.getParent() instanceof NottscriptParser.ReturnFuncBlockContext) {
             intSymbolTable.getChildren().getLast().define(name,new SymbolData(name,"unitID",name,intSymbolTable.getChildren().getLast().getSymbols().values().iterator().next().scope,"return"));
         } else{
@@ -706,5 +720,17 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     public Ast visitNodeAtom(NottscriptParser.NodeAtomContext ctx){
         String nodeType = ctx.getText();
         return new Ast.Atom.nodeAtom(nodeType);
+    }
+    private int binToDec(String binVal) {
+        return Integer.parseInt(binVal,2);
+    }
+
+    private int oct2Dec(String octVal) {
+        return Integer.parseInt(octVal, 8);
+    }
+
+    static int hex2Dec(String n)
+    {
+        return Integer.parseInt(n, 16);
     }
 }
