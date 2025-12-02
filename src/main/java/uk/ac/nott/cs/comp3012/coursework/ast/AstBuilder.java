@@ -526,11 +526,22 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitAddSubExpr(NottscriptParser.AddSubExprContext ctx) {
         Ast.AddSubExpr addSubExpr = new Ast.AddSubExpr();
-        for(NottscriptParser.AddSubOpContext addSubOpContext: ctx.addSubOp()){
-            addSubExpr.add(visit(addSubOpContext));
+        if(ctx.getChild(0) instanceof NottscriptParser.AddSubOpContext){
+            addSubExpr.add(visit(ctx.getChild(0)));
+            for(NottscriptParser.MulDivExprContext mulDivExprContext: ctx.mulDivExpr()){
+                addSubExpr.add(visit(mulDivExprContext));
+            }
+            for(int i = 1; i<ctx.addSubOp().size(); i++){
+                addSubExpr.add(visit(ctx.addSubOp(i)));
+            }
         }
-        for(NottscriptParser.MulDivExprContext mulDivExprContext: ctx.mulDivExpr()){
-            addSubExpr.add(visit(mulDivExprContext));
+        else{
+            for(NottscriptParser.MulDivExprContext mulDivExprContext: ctx.mulDivExpr()){
+                addSubExpr.add(visit(mulDivExprContext));
+            }
+            for(NottscriptParser.AddSubOpContext addSubOpContext: ctx.addSubOp()){
+                addSubExpr.add(visit(addSubOpContext));
+            }
         }
         return addSubExpr;
     }
@@ -676,9 +687,9 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitIntnum(NottscriptParser.IntnumContext ctx) {
         Ast.IntNum intNum = new Ast.IntNum();
-        NottscriptParser.AddSubOpContext starContext = ctx.addSubOp();
-        if(starContext!=null){
-            intNum.add(visit(starContext));
+        NottscriptParser.AddSubOpContext addSubOpContext = ctx.addSubOp();
+        if(addSubOpContext!=null){
+            intNum.add(visit(addSubOpContext));
         }
         NottscriptParser.NumAtomContext numAtomContext = ctx.numAtom();
         intNum.add(visit(numAtomContext));

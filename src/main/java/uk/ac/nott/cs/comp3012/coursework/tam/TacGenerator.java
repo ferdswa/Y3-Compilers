@@ -390,7 +390,6 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
     public TamInstruction visitAddSubExpr(Ast.AddSubExpr ctx) {
         TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
         boolean negate = ctx.getFirst() instanceof Ast.Atom.addSubAtom && ((Ast.Atom.addSubAtom) ctx.getFirst()).op().equals("-");
-        System.out.println(ctx.size());
         if(ctx.size()>2){//More than one
             //Get ops further down list
             List<Ast.MulDivExpr> mdExprs = new ArrayList<>();
@@ -414,6 +413,7 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
             //Possible negation. Check and apply if present.
             if(negate){
                 instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,TamPrimitive.neg.value+1));
+                expValue-=expValue2;
             }
             for(int i=1;i<mdExprs.size();i++){
                 TamInstruction instr1 = visitMulDivExpr(mdExprs.get(i));
@@ -437,6 +437,7 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
         }
         else if(ctx.size()==2 && negate){//Remember to add the negation
             TamInstruction instr = visitMulDivExpr((Ast.MulDivExpr) ctx.getLast());
+            expValue-=expValue2;
             if(instr instanceof TamInstruction.Instruction){
                 instructionList.add((TamInstruction.Instruction) instr);
             }
@@ -454,9 +455,11 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
     private int getAsOffset(Ast.Atom.addSubAtom as) {
         switch(as.op()){
             case "+"-> {
+                expValue += expValue2;
                 return TamPrimitive.add.value + 1;
             }
             case "-"->{
+                expValue -= expValue2;
                 return TamPrimitive.sub.value + 1;
             }
             default -> throw new IllegalStateException("Unknown logical operator");
@@ -508,18 +511,51 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
     private int getMdOffset(Ast.Atom.mulDivAtom as) {
         switch(as.op()){
             case "*"-> {
+                expValue *= expValue2;
                 return TamPrimitive.mult.value + 1;
             }
             case "/"->{
+                expValue /= expValue2;
                 return TamPrimitive.div.value + 1;
             }
             default -> throw new IllegalStateException("Unknown logical operator");
         }
     }
 
+    int expValue = 0;
+    int expValue2 = 0;
     @Override
     public TamInstruction visitPowExpr(Ast.PowExpr ctx) {
-        return visitFieldAccExpr((Ast.FieldAccessExpr) ctx.getFirst());
+        TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
+        if(ctx.size()>1){
+            //Get ops further down list
+            TamInstruction instr = visitFieldAccExpr((Ast.FieldAccessExpr) ctx.getFirst());
+            if(instr instanceof TamInstruction.Instruction){
+                instructionList.add((TamInstruction.Instruction) instr);
+            }
+            else{
+                instructionList.addAll((TamInstruction.InstructionList) instr);
+            }
+            for(int i=1;i<ctx.size();i++){
+                expValue = 0;
+                //Get the value of the next expression in the list
+                visitFieldAccExpr((Ast.FieldAccessExpr) ctx.get(i));
+                for(int j=1;j<expValue;j++){
+                    //Push another first value
+                    if(instr instanceof TamInstruction.Instruction){
+                        instructionList.add((TamInstruction.Instruction) instr);
+                    }
+                    else{
+                        instructionList.addAll((TamInstruction.InstructionList) instr);
+                    }
+                    //Multiply first value by itself
+                    instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,TamPrimitive.mult.value+1));
+                }
+            }
+            return instructionList;
+        }
+        else
+            return visitFieldAccExpr((Ast.FieldAccessExpr) ctx.getFirst());
     }
 
     @Override
@@ -560,11 +596,13 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
 
     @Override
     public TamInstruction visitHexSExpr(Ast.Atom.hexNumAtom ctx) {
+        expValue2 = ctx.hex();
         return new TamInstruction.Instruction(TamOpcode.LOADL, CB,0, ctx.hex());
     }
 
     @Override
     public TamInstruction visitBinSExpr(Ast.Atom.binNumAtom ctx) {
+        expValue2 = ctx.bin();
         return new TamInstruction.Instruction(TamOpcode.LOADL, CB,0,ctx.bin());
     }
 
@@ -636,12 +674,24 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
     }
 
     @Override
-    public TamInstruction visitIntnum(Ast.IntNum ctx) {
+    public TamInstruction visitIntnum(Ast.IntNum ctx) {//TODO: Intnums can also be inverted!
+        if(ctx.size()>1){//Negation
+            TamInstruction.InstructionList instructions = new TamInstruction.InstructionList();
+            instructions.add((TamInstruction.Instruction) visitNumAtom((Ast.Atom.numAtom) ctx.getLast()));
+            if(((Ast.Atom.addSubAtom)ctx.getFirst()).op().equals("-")){
+                System.out.println(ctx.size());
+                int i= getAsOffset((Ast.Atom.addSubAtom)ctx.getFirst());
+                System.out.println(expValue);
+                instructions.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,i));
+            }
+            return instructions;
+        }
         return visitNumAtom((Ast.Atom.numAtom) ctx.getLast());
     }
 
     @Override
     public TamInstruction visitNumAtom(Ast.Atom.numAtom ctx) {
+        expValue2 = ctx.i();
         return new TamInstruction.Instruction(TamOpcode.LOADL, CB,0,ctx.i());
     }
 
@@ -657,6 +707,7 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
 
     @Override
     public TamInstruction visitOctAtom(Ast.Atom.octNumAtom ctx) {
+        expValue2 = ctx.oct();
         return new TamInstruction.Instruction(TamOpcode.LOADL, CB,0,ctx.oct());
     }
 
