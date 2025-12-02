@@ -33,7 +33,7 @@ statement: nameAtom ASSIGN expr #baseAssign
            | ALLOCATE nameAtom COMMA arrayIndex #allocPtrArray
            | DEALLOCATE nameAtom #deallocPtr
            | CALL LEFTBRACKET paramList? RIGHTBRACKET #funcCall;
-elseStmt: nodeAtom statement+;//Done
+elseStmt: ELSE statement+;//Done
 doParam: (intnum|nameAtom);//Done
 readParam: (nameAtom|array);//Done
 arrayIndex: (numAtom|nameAtom);//Done

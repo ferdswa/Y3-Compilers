@@ -309,8 +309,6 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitElseStmt(NottscriptParser.ElseStmtContext ctx) {
         Ast.ElseStmt elseStmt = new Ast.ElseStmt();
-        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
-        elseStmt.add(visit(nodeAtom));
         for(NottscriptParser.StatementContext statement : ctx.statement()){
             elseStmt.add(visit(statement));
         }

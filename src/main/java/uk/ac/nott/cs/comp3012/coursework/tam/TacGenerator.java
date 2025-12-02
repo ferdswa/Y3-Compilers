@@ -33,6 +33,9 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
                 case Ast.IfBlock ifBlock -> {
                     instructionList.addAll((TamInstruction.InstructionList)visitIfBlock(ifBlock));
                 }
+                case Ast.IfElseBlock ifElseBlock -> {
+                    instructionList.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
+                }
                 default -> throw new IllegalStateException("Statement unsupported" + ctx.get(i));
             }
         }
@@ -149,7 +152,10 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
                 case Ast.IfBlock ifBlock -> {
                     tInstrs.addAll((TamInstruction.InstructionList)visitIfBlock(ifBlock));
                 }
-                default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
+                case Ast.IfElseBlock ifElseBlock -> {
+                    tInstrs.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
+                }
+                default -> throw new IllegalStateException("Statement unsupported" + ctx.get(i));
             }
         }
         instructionList.add(new TamInstruction.Instruction(TamOpcode.JUMPIF, CP,0, tInstrs.size()));
@@ -159,7 +165,50 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
 
     @Override
     public TamInstruction visitIfElse(Ast.IfElseBlock ctx) {
-        return null;
+        TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
+        TamInstruction.InstructionList tInstrs = new TamInstruction.InstructionList();
+        TamInstruction subExprs = visitExpr((Ast.Expr) ctx.getFirst());
+        switch(subExprs){
+            case TamInstruction.InstructionList instructions ->{
+                instructionList.addAll(instructions);
+            }
+            case TamInstruction.Instruction instruction ->{
+                instructionList.add(instruction);
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + subExprs);
+        }
+        for(int i=1; i<ctx.size()-1;i++) {//Final subAST is always the ElseStmt group
+            switch (ctx.get(i)) {
+                case Ast.Write writeNode -> {
+                    tInstrs.addAll((TamInstruction.InstructionList) visitWrite(writeNode));
+                }
+                case Ast.IfStatement ifStatement -> {
+                    tInstrs.addAll((TamInstruction.InstructionList) visitIfStmt(ifStatement));
+                }
+                case Ast.IfBlock ifBlock -> {
+                    tInstrs.addAll((TamInstruction.InstructionList)visitIfBlock(ifBlock));
+                }
+                case Ast.IfElseBlock ifElseBlock -> {
+                    tInstrs.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
+                }
+                default -> throw new IllegalStateException("Statement unsupported" + ctx.get(i).getClass().getSimpleName());
+            }
+        }
+        TamInstruction.InstructionList fInstrs = new TamInstruction.InstructionList();
+        TamInstruction elseStmt = visitElseStmt((Ast.ElseStmt) ctx.getLast());
+        switch(elseStmt){
+            case TamInstruction.InstructionList lElseStmt ->{
+                fInstrs.addAll(lElseStmt);
+            }
+            case TamInstruction.Instruction sElseStmt ->{
+                fInstrs.add(sElseStmt);
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + elseStmt);
+        }
+        instructionList.add(new TamInstruction.Instruction(TamOpcode.JUMPIF, CP,0, tInstrs.size()));
+        instructionList.addAll(tInstrs);
+        instructionList.addAll(fInstrs);
+        return instructionList;
     }
 
     @Override
@@ -186,12 +235,39 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
             case Ast.IfBlock ifBlock -> {
                 tInstrs.addAll((TamInstruction.InstructionList)visitIfBlock(ifBlock));
             }
+            case Ast.IfElseBlock ifElseBlock -> {
+                tInstrs.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
+            }
             default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
         }
         instructionList.add(new TamInstruction.Instruction(TamOpcode.JUMPIF, CP,0, tInstrs.size()));
         instructionList.addAll(tInstrs);
         return instructionList;
     }
+
+    @Override
+    public TamInstruction visitElseStmt(Ast.ElseStmt ctx) {
+        TamInstruction.InstructionList elseInstrs = new TamInstruction.InstructionList();
+        for(int i=1;i<ctx.size();i++){
+            switch(ctx.get(i)){
+                case Ast.Write writeNode-> {
+                    elseInstrs.addAll((TamInstruction.InstructionList)visitWrite(writeNode));
+                }
+                case Ast.IfStatement ifStatement->{
+                    elseInstrs.addAll((TamInstruction.InstructionList)visitIfStmt(ifStatement));
+                }
+                case Ast.IfBlock ifBlock -> {
+                    elseInstrs.addAll((TamInstruction.InstructionList)visitIfBlock(ifBlock));
+                }
+                case Ast.IfElseBlock ifElseBlock -> {
+                    elseInstrs.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
+                }
+                default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
+            }
+        }
+        return elseInstrs;
+    }
+
 
     @Override
     public TamInstruction visitDoIncr1(Ast.DoIncr1 ctx) {
@@ -248,11 +324,6 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
 
     @Override
     public TamInstruction visitFuncCall(Ast.FuncCall ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitElseStmt(Ast.ElseStmt ctx) {
         return null;
     }
 
