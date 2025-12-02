@@ -189,15 +189,10 @@ public class TypeChecker implements AstVisitor<Type> {
 
     @Override
     public Type visitIfBlock(Ast.IfBlock ctx) {
-        return visitComplexIf(ctx);
-    }
-
-    private Type visitComplexIf(Ast ComplexIf){
-        Ast.IfElseBlock ifElse = (Ast.IfElseBlock)ComplexIf;
-        Type t = visitExpr((Ast.Expr) ifElse.getFirst());
+        Type t = visitExpr((Ast.Expr) ctx.getFirst());
         if(t==Type.BaseType.Logical){
-            for(int i = 1; i < ifElse.size(); i++) {
-                switch (ifElse.get(i)) {//Statements
+            for(int i = 1; i < ctx.size(); i++) {
+                switch (ctx.get(i)) {//Statements
                     case Ast.NormalAssign normalAssign -> {
                         visitBaseAssign(normalAssign);
                     }
@@ -240,7 +235,48 @@ public class TypeChecker implements AstVisitor<Type> {
 
     @Override
     public Type visitIfElse(Ast.IfElseBlock ctx) {
-        return visitComplexIf(ctx);
+        Type t = visitExpr((Ast.Expr) ctx.getFirst());
+        if(t==Type.BaseType.Logical){
+            for(int i = 1; i < ctx.size(); i++) {
+                switch (ctx.get(i)) {//Statements
+                    case Ast.NormalAssign normalAssign -> {
+                        visitBaseAssign(normalAssign);
+                    }
+                    case Ast.ArrayAssign arrayAssign -> {
+                        visitArrayAssign(arrayAssign);
+                    }
+                    case Ast.CustomTypeAssign customTypeAssign -> {
+                        visitCtAssign(customTypeAssign);
+                    }
+                    case Ast.CustomTypeArrayAssign customTypeArrayAssign -> {
+                        visitCtArrayAssign(customTypeArrayAssign);
+                    }
+                    case Ast.Read read -> {
+                        visitRead(read);
+                    }
+                    case Ast.Write write -> {
+                        visitWrite(write);
+                    }
+                    case Ast.IfElseBlock ifElseBlock -> {
+                        visitIfElse(ifElseBlock);
+                    }
+                    case Ast.IfBlock ifBlock -> {
+                        visitIfBlock(ifBlock);
+                    }
+                    case Ast.IfStatement ifStmt -> {
+                        visitIfStmt(ifStmt);
+                    }
+                    case Ast.ElseStmt elseStmt -> {
+                        visitElseStmt(elseStmt);
+                    }
+                    default -> throw new UnsupportedOperationException("Statement type not supported :(");
+                }
+            }
+        }
+        else{
+            throw new UnsupportedOperationException("If statement expression is not a logical expression");
+        }
+        return Type.BaseType.OK;
     }
 
     @Override
