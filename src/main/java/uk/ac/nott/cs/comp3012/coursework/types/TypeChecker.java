@@ -497,7 +497,7 @@ public class TypeChecker implements AstVisitor<Type> {
                 return addSubLongVerify(ctx, types);
             }
             else{//Not an addsub expression. Continue. Ensure that the type of the subexpr is a number, as it is being hit with a sign
-                Type t = visitFieldAccExpr((Ast.FieldAccessExpr)ctx.getFirst());
+                Type t = visitMulDivExpr((Ast.MulDivExpr)ctx.getLast());
                 if(t == Type.BaseType.Number)
                     return t;
                 else

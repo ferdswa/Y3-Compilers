@@ -1,9 +1,6 @@
 package uk.ac.nott.cs.comp3012.coursework.tam;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import uk.ac.nott.cs.comp3012.coursework.AstVisitor;
 import uk.ac.nott.cs.comp3012.coursework.ast.Ast;
@@ -188,7 +185,12 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
         TamInstruction cExpr;
         for (Ast ast : ctx) {
             cExpr = visitExpr((Ast.Expr) ast);
-            writeList.add((TamInstruction.Instruction) cExpr);
+            if(cExpr instanceof TamInstruction.InstructionList){
+                writeList.addAll((TamInstruction.InstructionList)cExpr);
+            }
+            else{
+                writeList.add((TamInstruction.Instruction) cExpr);
+            }
             cExpr = new TamInstruction.Instruction(TamOpcode.CALL, PB, 0, TamPrimitive.putint.value + 1);
             writeList.add((TamInstruction.Instruction) cExpr);
         }
@@ -386,7 +388,83 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
 
     @Override
     public TamInstruction visitAddSubExpr(Ast.AddSubExpr ctx) {
-        return visitMulDivExpr((Ast.MulDivExpr) ctx.getFirst());
+        TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
+        boolean negate = ctx.getFirst() instanceof Ast.Atom.addSubAtom && ((Ast.Atom.addSubAtom) ctx.getFirst()).op().equals("-");
+        boolean pointlessPlus = ctx.getFirst() instanceof Ast.Atom.addSubAtom && ((Ast.Atom.addSubAtom) ctx.getFirst()).op().equals("+");
+        System.out.println(negate);
+        if(ctx.size()>2){//More than one
+            //Get ops further down list
+            List<Ast.MulDivExpr> mdExprs = new ArrayList<>();
+            List<Ast.Atom.addSubAtom> ops = new ArrayList<>();
+            for (Ast ast : ctx) {
+                if (ast instanceof Ast.MulDivExpr) {
+                    mdExprs.add((Ast.MulDivExpr) ast);
+                } else if (ast instanceof Ast.Atom.addSubAtom) {
+                    ops.add((Ast.Atom.addSubAtom) ast);
+                } else {
+                    throw new IllegalStateException("Unknown logical operator");
+                }
+            }
+            TamInstruction instr = visitMulDivExpr(mdExprs.getFirst());
+            if(instr instanceof TamInstruction.Instruction){
+                instructionList.add((TamInstruction.Instruction) instr);
+            }
+            else{
+                instructionList.addAll((TamInstruction.InstructionList) instr);
+            }
+            //Possible negation. Check and apply if present.
+            if(negate){
+                instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,TamPrimitive.neg.value+1));
+            }
+            for(int i=1;i<mdExprs.size();i++){
+                TamInstruction instr1 = visitMulDivExpr(mdExprs.get(i));
+                if(instr1 instanceof TamInstruction.Instruction){
+                    instructionList.add((TamInstruction.Instruction) instr1);
+                }
+                else{
+                    instructionList.addAll((TamInstruction.InstructionList) instr1);
+                }
+                Ast.Atom.addSubAtom as;
+                if(negate||pointlessPlus){
+                    as = ops.get(i);//First op already consumed by negation/the random plus sign
+                }
+                else{
+                    as = ops.get(i-1);
+                }
+                int asOffset = getAsOffset(as);
+                instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,asOffset));
+            }
+            return instructionList;
+        }
+        else if(ctx.size()==2 && negate){//Remember to add the negation
+            TamInstruction instr = visitMulDivExpr((Ast.MulDivExpr) ctx.getLast());
+            if(instr instanceof TamInstruction.Instruction){
+                instructionList.add((TamInstruction.Instruction) instr);
+            }
+            else{
+                instructionList.addAll((TamInstruction.InstructionList) instr);
+            }
+            instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0, TamPrimitive.neg.value+1));
+            return instructionList;
+        }
+        else {
+            if(pointlessPlus){
+                return visitMulDivExpr((Ast.MulDivExpr) ctx.getLast());
+            }
+            return visitMulDivExpr((Ast.MulDivExpr) ctx.getFirst());
+        }
+    }
+
+    private int getAsOffset(Ast.Atom.addSubAtom as) {
+        switch(as.op()){
+            case "+"-> {
+                return TamPrimitive.add.value + 1;
+            }
+            case "-"->{
+                return TamPrimitive.sub.value + 1;
+            }
+            default -> throw new IllegalStateException("Unknown logical operator");
+        }
     }
 
     @Override
