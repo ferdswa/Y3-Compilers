@@ -46,7 +46,7 @@ orExpr: andExpr(OR andExpr)*;
 andExpr: relExpr(AND relExpr)*;
 relExpr: concatExpr(relativeOp concatExpr)*;
 concatExpr: addSubExpr(CONCAT addSubExpr)*;
-addSubExpr: addSubOp? mulDivExpr(addSubOp mulDivExpr)*;
+addSubExpr: mulDivExpr(addSubOp mulDivExpr)*;
 mulDivExpr: powExpr (mulDivOp powExpr)*;
 powExpr: fieldAccExpr (POW fieldAccExpr)*;
 fieldAccExpr: basic(FIELDACCESS basic)?;
@@ -158,9 +158,9 @@ HEXNUM: [z]'"'HEXDIG+'"';
 USIGNINT: DIGIT+;
 REALNUM: SIGN?DIGIT+'.'DIGIT*//Either not both
         | SIGN?DIGIT*'.'DIGIT+;
-COMMENT: SPACES*'!'[\t -~]*NEWLINE* -> skip;//whitespace ignored pre comment
+COMMENT: SPACES*'!'[\t -~]*NEWLINE -> skip;//whitespace ignored pre comment
 WHITESPACE: (SPACES|NEWLINE)+ -> skip;//Skip all whitespaces
-NEWLINE: [\r\n]+;
+NEWLINE: [\r\n];
 //Fragments
 fragment ALPHANUM: DIGIT|LETTER;
 fragment USCORE: '_';

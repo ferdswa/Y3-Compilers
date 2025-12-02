@@ -390,7 +390,7 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
     public TamInstruction visitAddSubExpr(Ast.AddSubExpr ctx) {
         TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
         boolean negate = ctx.getFirst() instanceof Ast.Atom.addSubAtom && ((Ast.Atom.addSubAtom) ctx.getFirst()).op().equals("-");
-        if(ctx.size()>2){//More than one
+        if(ctx.size()>1){//More than one
             //Get ops further down list
             List<Ast.MulDivExpr> mdExprs = new ArrayList<>();
             List<Ast.Atom.addSubAtom> ops = new ArrayList<>();
@@ -409,11 +409,6 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
             }
             else{
                 instructionList.addAll((TamInstruction.InstructionList) instr);
-            }
-            //Possible negation. Check and apply if present.
-            if(negate){
-                instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,TamPrimitive.neg.value+1));
-                expValue-=expValue2;
             }
             for(int i=1;i<mdExprs.size();i++){
                 TamInstruction instr1 = visitMulDivExpr(mdExprs.get(i));
@@ -435,18 +430,6 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
             }
             return instructionList;
         }
-        else if(ctx.size()==2 && negate){//Remember to add the negation
-            TamInstruction instr = visitMulDivExpr((Ast.MulDivExpr) ctx.getLast());
-            expValue-=expValue2;
-            if(instr instanceof TamInstruction.Instruction){
-                instructionList.add((TamInstruction.Instruction) instr);
-            }
-            else{
-                instructionList.addAll((TamInstruction.InstructionList) instr);
-            }
-            instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0, TamPrimitive.neg.value+1));
-            return instructionList;
-        }
         else {
             return visitMulDivExpr((Ast.MulDivExpr) ctx.getLast());
         }
@@ -455,11 +438,12 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
     private int getAsOffset(Ast.Atom.addSubAtom as) {
         switch(as.op()){
             case "+"-> {
-                expValue += expValue2;
+                //expValue += expValue2;
                 return TamPrimitive.add.value + 1;
             }
             case "-"->{
-                expValue -= expValue2;
+                System.out.println(expValue+" "+ expValue2);
+                expValue -= (2*expValue2);
                 return TamPrimitive.sub.value + 1;
             }
             default -> throw new IllegalStateException("Unknown logical operator");
@@ -530,6 +514,7 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
         if(ctx.size()>1){
             //Get ops further down list
             TamInstruction instr = visitFieldAccExpr((Ast.FieldAccessExpr) ctx.getFirst());
+
             if(instr instanceof TamInstruction.Instruction){
                 instructionList.add((TamInstruction.Instruction) instr);
             }
@@ -540,15 +525,35 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
                 expValue = 0;
                 //Get the value of the next expression in the list
                 visitFieldAccExpr((Ast.FieldAccessExpr) ctx.get(i));
-                for(int j=1;j<expValue;j++){
-                    //Push another first value
-                    if(instr instanceof TamInstruction.Instruction){
-                        instructionList.add((TamInstruction.Instruction) instr);
+                System.out.println(expValue);
+                if(expValue>0){
+                    for(int j=1;j<expValue;j++){
+                        //Push another first value
+                        if(instr instanceof TamInstruction.Instruction){
+                            instructionList.add((TamInstruction.Instruction) instr);
+                        }
+                        else{
+                            instructionList.addAll((TamInstruction.InstructionList) instr);
+                        }
+                        //Multiply first value by itself
+                        instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,TamPrimitive.mult.value+1));
                     }
-                    else{
-                        instructionList.addAll((TamInstruction.InstructionList) instr);
+                }
+                else if(expValue<0){//Negative exponentials. They don't work.
+                    for(int j=-1;j>expValue;j--){
+                        //Push another first value
+                        if(instr instanceof TamInstruction.Instruction){
+                            instructionList.add((TamInstruction.Instruction) instr);
+                        }
+                        else{
+                            instructionList.addAll((TamInstruction.InstructionList) instr);
+                        }
+                        //Multiply first value by itself
+                        instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,TamPrimitive.div.value+1));
                     }
-                    //Multiply first value by itself
+                }
+                else{
+                    instructionList.add(new TamInstruction.Instruction(TamOpcode.LOADL, CB,0,1));
                     instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,TamPrimitive.mult.value+1));
                 }
             }
@@ -653,13 +658,6 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
 
     @Override
     public TamInstruction visitMulDivOp(Ast.Atom.mulDivAtom ctx) {
-//        int res;
-//        if(ctx.op().equals("*")){
-//            res = TamPrimitive.mult.value+1;
-//        }
-//        else if(ctx.op().equals("/")){
-//            res = TamPrimitive.div.value+1;
-//        }
         return null;
     }
 
@@ -679,16 +677,22 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
             TamInstruction.InstructionList instructions = new TamInstruction.InstructionList();
             instructions.add((TamInstruction.Instruction) visitNumAtom((Ast.Atom.numAtom) ctx.getLast()));
             if(((Ast.Atom.addSubAtom)ctx.getFirst()).op().equals("-")){
-                System.out.println(ctx.size());
-                int i= getAsOffset((Ast.Atom.addSubAtom)ctx.getFirst());
-                System.out.println(expValue);
-                instructions.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,i));
+                instructions.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,TamPrimitive.neg.value+1));
+                expValue -= ((Ast.Atom.numAtom) ctx.getLast()).i();
+                expValue2 = -expValue2;
+            }
+            else{
+                expValue += ((Ast.Atom.numAtom) ctx.getLast()).i();
             }
             return instructions;
         }
-        return visitNumAtom((Ast.Atom.numAtom) ctx.getLast());
+        else{
+            expValue += ((Ast.Atom.numAtom) ctx.getLast()).i();
+            return visitNumAtom((Ast.Atom.numAtom) ctx.getLast());
+        }
     }
 
+    boolean first = false;
     @Override
     public TamInstruction visitNumAtom(Ast.Atom.numAtom ctx) {
         expValue2 = ctx.i();

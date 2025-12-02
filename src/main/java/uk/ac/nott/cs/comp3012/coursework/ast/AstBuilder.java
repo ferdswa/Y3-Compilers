@@ -526,22 +526,11 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitAddSubExpr(NottscriptParser.AddSubExprContext ctx) {
         Ast.AddSubExpr addSubExpr = new Ast.AddSubExpr();
-        if(ctx.getChild(0) instanceof NottscriptParser.AddSubOpContext){
-            addSubExpr.add(visit(ctx.getChild(0)));
-            for(NottscriptParser.MulDivExprContext mulDivExprContext: ctx.mulDivExpr()){
-                addSubExpr.add(visit(mulDivExprContext));
-            }
-            for(int i = 1; i<ctx.addSubOp().size(); i++){
-                addSubExpr.add(visit(ctx.addSubOp(i)));
-            }
+        for(NottscriptParser.MulDivExprContext mulDivExprContext: ctx.mulDivExpr()){
+            addSubExpr.add(visit(mulDivExprContext));
         }
-        else{
-            for(NottscriptParser.MulDivExprContext mulDivExprContext: ctx.mulDivExpr()){
-                addSubExpr.add(visit(mulDivExprContext));
-            }
-            for(NottscriptParser.AddSubOpContext addSubOpContext: ctx.addSubOp()){
-                addSubExpr.add(visit(addSubOpContext));
-            }
+        for(NottscriptParser.AddSubOpContext addSubOpContext: ctx.addSubOp()){
+            addSubExpr.add(visit(addSubOpContext));
         }
         return addSubExpr;
     }
