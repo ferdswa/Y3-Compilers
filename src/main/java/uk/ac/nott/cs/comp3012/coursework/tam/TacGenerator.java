@@ -10,8 +10,7 @@ import uk.ac.nott.cs.comp3012.coursework.NottscriptParser;
 import uk.ac.nott.cs.comp3012.coursework.ast.Ast;
 import uk.ac.nott.cs.comp3012.coursework.tac.TacInstr;
 
-import static uk.ac.nott.cs.comp3012.coursework.tam.TamRegister.CB;
-import static uk.ac.nott.cs.comp3012.coursework.tam.TamRegister.CP;
+import static uk.ac.nott.cs.comp3012.coursework.tam.TamRegister.*;
 
 public class TacGenerator implements AstVisitor<TamInstruction> {
     int jumpOffset = 0;
@@ -141,7 +140,16 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
     public TamInstruction visitIfStmt(Ast.IfStatement ctx) {
         TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
         TamInstruction.InstructionList tInstrs = new TamInstruction.InstructionList();
-        instructionList.add((TamInstruction.Instruction) visitExpr((Ast.Expr) ctx.getFirst()));
+        TamInstruction subExprs = visitExpr((Ast.Expr) ctx.getFirst());
+        switch(subExprs){
+            case TamInstruction.InstructionList instructions ->{
+                instructionList.addAll(instructions);
+            }
+            case TamInstruction.Instruction instruction ->{
+                instructionList.add(instruction);
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + subExprs);
+        }
         switch(ctx.getLast()){
             case Ast.Write writeNode-> {
                 tInstrs.addAll((TamInstruction.InstructionList)visitWrite(writeNode));
@@ -183,7 +191,7 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
         for (Ast ast : ctx) {
             cExpr = visitExpr((Ast.Expr) ast);
             writeList.add((TamInstruction.Instruction) cExpr);
-            cExpr = new TamInstruction.Instruction(TamOpcode.CALL, TamRegister.PB, 0, TamPrimitive.putint.value + 1);
+            cExpr = new TamInstruction.Instruction(TamOpcode.CALL, PB, 0, TamPrimitive.putint.value + 1);
             writeList.add((TamInstruction.Instruction) cExpr);
         }
         return writeList;
@@ -246,20 +254,73 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
 
     @Override
     public TamInstruction visitExpr(Ast.Expr ctx) {
-        return visitLogExpr((Ast.LogExpr) ctx.getFirst());
+        return visitOrExpr((Ast.OrExpr) ctx.getFirst());
     }
 
     @Override
-    public TamInstruction visitLogExpr(Ast.LogExpr ctx) {
-//        TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
-//        if(ctx.size()>1){
-//            for(int i=0;i<ctx.size();i+=2){//operands
-//                instructionList.add((TamInstruction.Instruction) visitRelExpr((Ast.RelExpr) ctx.get(i)));
-//                instructionList.add((TamInstruction.Instruction) visitRelExpr((Ast.RelExpr) ctx.get(i)));
-//                switch
-//            }
-//        }
-        return visitRelExpr((Ast.RelExpr) ctx.getFirst());
+    public TamInstruction visitOrExpr(Ast.OrExpr ctx) {
+        TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
+        if(ctx.size()>1){
+            TamInstruction instr = visitAndExpr((Ast.AndExpr) ctx.getFirst());
+            if(instr instanceof TamInstruction.Instruction){
+                instructionList.add((TamInstruction.Instruction) instr);
+            }
+            else{
+                instructionList.addAll((TamInstruction.InstructionList) instr);
+            }
+            for(int i=1;i<ctx.size();i++){
+                TamInstruction instr1 = visitAndExpr((Ast.AndExpr) ctx.get(i));
+                if(instr1 instanceof TamInstruction.Instruction){
+                    instructionList.add((TamInstruction.Instruction) instr1);
+                }
+                else{
+                    instructionList.addAll((TamInstruction.InstructionList) instr1);
+                }
+                instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,TamPrimitive.or.value+1));
+                //instructionList.add(new TamInstruction.Instruction(TamOpcode.RETURN,PB,1,3));
+            }
+            return instructionList;
+        }
+        else
+            return visitAndExpr((Ast.AndExpr) ctx.getFirst());
+    }
+    @Override
+    public TamInstruction visitAndExpr(Ast.AndExpr ctx) {
+        TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
+        if(ctx.size()>1){
+            instructionList.add((TamInstruction.Instruction) visitRelExpr((Ast.RelExpr) ctx.getFirst()));
+            for(int i=1;i<ctx.size();i++){
+                instructionList.add((TamInstruction.Instruction) visitRelExpr((Ast.RelExpr) ctx.get(i)));
+                instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,TamPrimitive.and.value+1));
+            }
+            return instructionList;
+        }
+        else
+            return visitRelExpr((Ast.RelExpr) ctx.getFirst());
+    }
+
+    private int getRelOp(Ast.Atom.relAtom at){
+        switch(at.relOp()){
+            case "<", ".lt." -> {
+                return TamPrimitive.lt.value + 1;
+            }
+            case ">", ".gt." ->{
+                return TamPrimitive.gt.value + 1;
+            }
+            case "<=", ".le." ->{
+                return TamPrimitive.le.value + 1;
+            }
+            case ">=", ".ge." ->{
+                return TamPrimitive.ge.value + 1;
+            }
+            case "/=", ".neq." -> {
+                return TamPrimitive.ne.value + 1;
+            }
+            case "==", ".eq." -> {
+                return TamPrimitive.eq.value + 1;
+            }
+            default -> throw new IllegalStateException("Unknown logical operator");
+        }
     }
 
     @Override

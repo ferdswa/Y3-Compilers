@@ -484,20 +484,25 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitExpr(NottscriptParser.ExprContext ctx) {
         Ast.Expr expr = new Ast.Expr();
-        NottscriptParser.LogExprContext logExpr = ctx.logExpr();
-        expr.add(visit(logExpr));
+        NottscriptParser.OrExprContext orExpr = ctx.orExpr();
+        expr.add(visit(orExpr));
         return expr;
     }
     @Override
-    public Ast visitLogExpr(NottscriptParser.LogExprContext ctx) {
-        Ast.LogExpr logExpr = new Ast.LogExpr();
+    public Ast visitOrExpr(NottscriptParser.OrExprContext ctx) {
+        Ast.OrExpr orExpr = new Ast.OrExpr();
+        for(NottscriptParser.AndExprContext andExpr: ctx.andExpr()){
+            orExpr.add(visit(andExpr));
+        }
+        return orExpr;
+    }
+    @Override
+    public Ast visitAndExpr(NottscriptParser.AndExprContext ctx) {
+        Ast.AndExpr andExpr = new Ast.AndExpr();
         for(NottscriptParser.RelExprContext relExpr: ctx.relExpr()){
-            logExpr.add(visit(relExpr));
+            andExpr.add(visit(relExpr));
         }
-        for(NottscriptParser.LogicalOpContext logicalOp: ctx.logicalOp()){
-            logExpr.add(visit(logicalOp));
-        }
-        return logExpr;
+        return andExpr;
     }
     @Override
     public Ast visitRelExpr(NottscriptParser.RelExprContext ctx) {
@@ -560,6 +565,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     public Ast visitLogicSExpr(NottscriptParser.LogicSExprContext ctx) {
         String boolVal = ctx.getText();
         boolVal = boolVal.replace(".","");
+        boolVal = boolVal.replace("\"","");
         boolean b =  Boolean.parseBoolean(boolVal);
         return new Ast.Atom.boolAtom(b);
     }
@@ -567,12 +573,14 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     public Ast visitHexSExpr(NottscriptParser.HexSExprContext ctx) {
         String hexVal = ctx.getText();
         hexVal = hexVal.replace("z","");
+        hexVal = hexVal.replace("\"","");
         return new Ast.Atom.hexNumAtom(hex2Dec(hexVal));
     }
     @Override
     public Ast visitOctSExpr(NottscriptParser.OctSExprContext ctx) {
         String octVal = ctx.getText();
         octVal = octVal.replace("o","");
+        octVal = octVal.replace("\"","");
         return new Ast.Atom.octNumAtom(oct2Dec(octVal));
     }
 

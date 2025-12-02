@@ -194,11 +194,19 @@ public interface Ast{
             super(elems);
         }
     }
-    class LogExpr extends ArrayList<Ast> implements Ast {
-        public LogExpr() {
+    class OrExpr extends ArrayList<Ast> implements Ast {
+        public OrExpr() {
             super();
         }
-        public LogExpr(Collection<? extends Ast> elems) {
+        public OrExpr(Collection<? extends Ast> elems) {
+            super(elems);
+        }
+    }
+    class AndExpr extends ArrayList<Ast> implements Ast {
+        public AndExpr() {
+            super();
+        }
+        public AndExpr(Collection<? extends Ast> elems) {
             super(elems);
         }
     }

@@ -41,8 +41,9 @@ array: nameAtom LEFTBRACKET arrayIndex (COMMA arrayIndex)* RIGHTBRACKET;
 paramSubList: (nameAtom|expr);
 paramList: paramSubList (COMMA paramSubList)*;
 //Expressions - ordered in inverse precedence
-expr: logExpr;
-logExpr: relExpr(logicalOp relExpr)*;
+expr: orExpr;
+orExpr: andExpr(OR andExpr)*;
+andExpr: relExpr(AND relExpr)*;
 relExpr: concatExpr(relativeOp concatExpr)*;
 concatExpr: addSubExpr(CONCAT addSubExpr)*;
 addSubExpr: addSubOp? mulDivExpr(addSubOp mulDivExpr)*;
