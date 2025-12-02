@@ -32,7 +32,8 @@ statement: nameAtom ASSIGN expr #baseAssign
            | ALLOCATE nameAtom #allocPtr
            | ALLOCATE nameAtom COMMA arrayIndex #allocPtrArray
            | DEALLOCATE nameAtom #deallocPtr
-           | CALL LEFTBRACKET paramList? RIGHTBRACKET #funcCall;
+           | CALL LEFTBRACKET paramList? RIGHTBRACKET #funcCall
+           | EXIT #exitStmt;
 elseStmt: ELSE statement+;//Done
 doParam: (intnum|nameAtom);//Done
 readParam: (nameAtom|array);//Done
@@ -96,6 +97,7 @@ nodeAtom:
        | WRITE;
 //Lexer rules
 //Keywords
+EXIT: 'exit';
 ALLOCATE: 'allocate';
 BREAK: 'break';
 CALL: 'call';

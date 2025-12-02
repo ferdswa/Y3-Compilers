@@ -223,6 +223,9 @@ public class TypeChecker implements AstVisitor<Type> {
                     case Ast.ElseStmt elseStmt -> {
                         visitElseStmt(elseStmt);
                     }
+                    case Ast.Atom.exitAtom exitAtom -> {
+                        visitExitStmt(exitAtom);
+                    }
                     default -> throw new UnsupportedOperationException("Statement type not supported :(");
                 }
             }
@@ -266,6 +269,9 @@ public class TypeChecker implements AstVisitor<Type> {
                     case Ast.IfStatement ifStmt -> {
                         visitIfStmt(ifStmt);
                     }
+                    case Ast.Atom.exitAtom exitAtom -> {
+                        visitExitStmt(exitAtom);
+                    }
                     case Ast.ElseStmt elseStmt -> {
                         visitElseStmt(elseStmt);
                     }
@@ -281,7 +287,45 @@ public class TypeChecker implements AstVisitor<Type> {
 
     @Override
     public Type visitElseStmt(Ast.ElseStmt ctx) {
-        return null;
+        for(int i = 1; i < ctx.size(); i++) {
+            switch (ctx.get(i)) {//Statements
+                case Ast.NormalAssign normalAssign -> {
+                    visitBaseAssign(normalAssign);
+                }
+                case Ast.ArrayAssign arrayAssign -> {
+                    visitArrayAssign(arrayAssign);
+                }
+                case Ast.CustomTypeAssign customTypeAssign -> {
+                    visitCtAssign(customTypeAssign);
+                }
+                case Ast.CustomTypeArrayAssign customTypeArrayAssign -> {
+                    visitCtArrayAssign(customTypeArrayAssign);
+                }
+                case Ast.Read read -> {
+                    visitRead(read);
+                }
+                case Ast.Write write -> {
+                    visitWrite(write);
+                }
+                case Ast.IfElseBlock ifElseBlock -> {
+                    visitIfElse(ifElseBlock);
+                }
+                case Ast.IfBlock ifBlock -> {
+                    visitIfBlock(ifBlock);
+                }
+                case Ast.IfStatement ifStmt -> {
+                    visitIfStmt(ifStmt);
+                }
+                case Ast.Atom.exitAtom exitAtom -> {
+                    visitExitStmt(exitAtom);
+                }
+                case Ast.ElseStmt elseStmt -> {
+                    visitElseStmt(elseStmt);
+                }
+                default -> throw new UnsupportedOperationException("Statement type not supported :(");
+            }
+        }
+        return Type.BaseType.OK;
     }
 
     @Override
@@ -315,6 +359,9 @@ public class TypeChecker implements AstVisitor<Type> {
                 }
                 case Ast.IfStatement ifStmt -> {
                     return visitIfStmt(ifStmt);
+                }
+                case Ast.Atom.exitAtom exitAtom -> {
+                    return visitExitStmt(exitAtom);
                 }
                 default -> throw new UnsupportedOperationException("Statement type not supported :(");
             }
@@ -791,6 +838,11 @@ public class TypeChecker implements AstVisitor<Type> {
     @Override
     public Type visitOctAtom(Ast.Atom.octNumAtom ctx) {
         return Type.BaseType.Number;
+    }
+
+    @Override
+    public Type visitExitStmt(Ast.Atom.exitAtom ctx) {
+        return null;
     }
 
     @Override

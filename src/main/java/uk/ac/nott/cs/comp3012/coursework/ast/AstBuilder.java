@@ -315,6 +315,10 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         return elseStmt;
     }
     @Override
+    public Ast visitExitStmt(NottscriptParser.ExitStmtContext ctx) {
+        return new Ast.Atom.exitAtom("exit");
+    }
+    @Override
     public Ast visitIfStmt(NottscriptParser.IfStmtContext ctx) {
         Ast.IfStatement ifStatement = new Ast.IfStatement();
         NottscriptParser.ExprContext expr = ctx.expr();
