@@ -6,9 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import uk.ac.nott.cs.comp3012.coursework.AstVisitor;
-import uk.ac.nott.cs.comp3012.coursework.NottscriptParser;
 import uk.ac.nott.cs.comp3012.coursework.ast.Ast;
-import uk.ac.nott.cs.comp3012.coursework.tac.TacInstr;
 
 import static uk.ac.nott.cs.comp3012.coursework.tam.TamRegister.*;
 
@@ -370,7 +368,7 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
                 }
                 Ast.Atom.relAtom rl = ops.get(i-1);
                 int relOpOffset = getRelOp(rl);
-                if(relOpOffset == TamPrimitive.ne.value ||  relOpOffset == TamPrimitive.eq.value){
+                if(relOpOffset == TamPrimitive.ne.value+1 ||  relOpOffset == TamPrimitive.eq.value+1){
                     instructionList.add(new TamInstruction.Instruction(TamOpcode.LOADL, CB,0,1));
                 }
                 instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,relOpOffset));
