@@ -390,8 +390,7 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
     public TamInstruction visitAddSubExpr(Ast.AddSubExpr ctx) {
         TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
         boolean negate = ctx.getFirst() instanceof Ast.Atom.addSubAtom && ((Ast.Atom.addSubAtom) ctx.getFirst()).op().equals("-");
-        boolean pointlessPlus = ctx.getFirst() instanceof Ast.Atom.addSubAtom && ((Ast.Atom.addSubAtom) ctx.getFirst()).op().equals("+");
-        System.out.println(negate);
+        System.out.println(ctx.size());
         if(ctx.size()>2){//More than one
             //Get ops further down list
             List<Ast.MulDivExpr> mdExprs = new ArrayList<>();
@@ -425,7 +424,7 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
                     instructionList.addAll((TamInstruction.InstructionList) instr1);
                 }
                 Ast.Atom.addSubAtom as;
-                if(negate||pointlessPlus){
+                if(negate){
                     as = ops.get(i);//First op already consumed by negation/the random plus sign
                 }
                 else{
@@ -448,10 +447,7 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
             return instructionList;
         }
         else {
-            if(pointlessPlus){
-                return visitMulDivExpr((Ast.MulDivExpr) ctx.getLast());
-            }
-            return visitMulDivExpr((Ast.MulDivExpr) ctx.getFirst());
+            return visitMulDivExpr((Ast.MulDivExpr) ctx.getLast());
         }
     }
 
@@ -469,7 +465,56 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
 
     @Override
     public TamInstruction visitMulDivExpr(Ast.MulDivExpr ctx) {
-        return visitPowExpr((Ast.PowExpr) ctx.getFirst());
+        TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
+        if(ctx.size()>1){
+            //Get ops further down list
+            List<Ast.PowExpr> powExprs = new ArrayList<>();
+            List<Ast.Atom.mulDivAtom> ops = new ArrayList<>();
+            for (Ast ast : ctx) {
+                if (ast instanceof Ast.PowExpr) {
+                    powExprs.add((Ast.PowExpr) ast);
+                } else if (ast instanceof Ast.Atom.mulDivAtom) {
+                    ops.add((Ast.Atom.mulDivAtom) ast);
+                } else {
+                    throw new IllegalStateException("Unknown logical operator");
+                }
+            }
+            TamInstruction instr = visitPowExpr(powExprs.getFirst());
+            if(instr instanceof TamInstruction.Instruction){
+                instructionList.add((TamInstruction.Instruction) instr);
+            }
+            else{
+                instructionList.addAll((TamInstruction.InstructionList) instr);
+            }
+
+            for(int i=1;i<powExprs.size();i++){
+                TamInstruction instr1 = visitPowExpr(powExprs.get(i));
+                if(instr1 instanceof TamInstruction.Instruction){
+                    instructionList.add((TamInstruction.Instruction) instr1);
+                }
+                else{
+                    instructionList.addAll((TamInstruction.InstructionList) instr1);
+                }
+                Ast.Atom.mulDivAtom md = ops.get(i-1);
+                int mulDivOpOffset = getMdOffset(md);
+                instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,mulDivOpOffset));
+            }
+            return instructionList;
+        }
+        else
+            return visitPowExpr((Ast.PowExpr) ctx.getFirst());
+    }
+
+    private int getMdOffset(Ast.Atom.mulDivAtom as) {
+        switch(as.op()){
+            case "*"-> {
+                return TamPrimitive.mult.value + 1;
+            }
+            case "/"->{
+                return TamPrimitive.div.value + 1;
+            }
+            default -> throw new IllegalStateException("Unknown logical operator");
+        }
     }
 
     @Override
