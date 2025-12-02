@@ -6,19 +6,19 @@ import java.util.Collection;
 /**
  * Base interface type for all AST classes. Modify it, delete it, or do whatever you want with it.
  */
-public interface Ast {
+public interface Ast{
     sealed interface Atom extends Ast{
         //numbers
         record numAtom(int i) implements Atom {
 
         }
-        record binNumAtom(String bin) implements Atom {
+        record binNumAtom(int bin) implements Atom {
 
         }
-        record octNumAtom(String oct) implements Atom {
+        record octNumAtom(int oct) implements Atom {
 
         }
-        record hexNumAtom(String hex) implements Atom {
+        record hexNumAtom(int hex) implements Atom {
 
         }
         record realAtom(float f) implements Atom {
@@ -34,10 +34,10 @@ public interface Ast {
 
         }
         //logicals
-        record logicAtom(String logicVal) implements Atom {
+        record logicOpAtom(String logicVal) implements Atom {
 
         }
-        record boolAtom(String bool) implements Atom {
+        record boolAtom(boolean bool) implements Atom {
 
         }
         //operators
@@ -80,6 +80,16 @@ public interface Ast {
             super(elems);
         }
     }
+
+    class ArraySExpr extends ArrayList<Ast> implements Ast {
+        public ArraySExpr() {
+            super();
+        }
+        public ArraySExpr(Collection<? extends Ast> elems) {
+            super(elems);
+        }
+    }
+
     class ArrayDef extends ArrayList<Ast> implements Ast {
         public ArrayDef() {
             super();
@@ -435,6 +445,14 @@ public interface Ast {
             super();
         }
         public ProgramUnit(Collection<? extends Ast> elems) {
+            super(elems);
+        }
+    }
+    class NameUnit  extends ArrayList<Ast> implements Ast {
+        public NameUnit() {
+            super();
+        }
+        public NameUnit(Collection<? extends Ast> elems) {
             super(elems);
         }
     }

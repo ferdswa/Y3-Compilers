@@ -6,21 +6,21 @@ public class SymbolTable {
     private String scopeName;
     private SymbolTable parent;
     private List<SymbolTable> children;
-    private Map<String, SymbolData> symbols;
+    private LinkedHashMap<String, SymbolData> symbols;
     public SymbolTable(){
         this.children = new ArrayList<SymbolTable>();
-        this.symbols = new HashMap<String, SymbolData>();
+        this.symbols = new LinkedHashMap<>();
     }
     public SymbolTable(SymbolTable parent){
         this.parent = parent;
         this.children = new ArrayList<>();
-        this.symbols = new HashMap<>();
+        this.symbols = new LinkedHashMap<>();
         this.parent.addChild(this);
     }
     public SymbolTable(SymbolTable existingValues, boolean copyFlag){
         this.parent = existingValues.getParent();
         this.children = existingValues.getChildren();
-        this.symbols = existingValues.getSymbols();
+        this.symbols = (LinkedHashMap<String, SymbolData>) existingValues.getSymbols();
         this.scopeName = existingValues.getScopeName();
     }
     public Optional<SymbolData> lookup(String symbolName){
@@ -32,12 +32,21 @@ public class SymbolTable {
     public String getScopeName(){return this.scopeName;}
     public void setScopeName(String scopeName){this.scopeName = scopeName;}
     public SymbolTable getParent(){return this.parent;}
-    public void setParent(SymbolTable parent){this.parent = parent;}
+    public void setParent(SymbolTable parent){
+        if(this.parent != null){
+            this.parent.removeChild(this);
+        }
+        this.parent = parent;
+        this.parent.addChild(this);
+    }
     public Map<String, SymbolData> getSymbols(){return this.symbols;}
-    public void setSymbols(Map<String, SymbolData> symbols){this.symbols = symbols;}
+    public void setSymbols(Map<String, SymbolData> symbols){this.symbols = (LinkedHashMap<String, SymbolData>) symbols;}
     public List<SymbolTable> getChildren(){return this.children;}
     public void addChild(SymbolTable child){this.children.add(child);}
     public void removeChild(SymbolTable child){
         this.children.remove(child);
+    }
+    public void clearChildren(){
+        this.children.clear();
     }
 }
