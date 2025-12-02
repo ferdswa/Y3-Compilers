@@ -288,9 +288,22 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
     public TamInstruction visitAndExpr(Ast.AndExpr ctx) {
         TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
         if(ctx.size()>1){
-            instructionList.add((TamInstruction.Instruction) visitRelExpr((Ast.RelExpr) ctx.getFirst()));
+            //Get ops further down list
+            TamInstruction instr = visitRelExpr((Ast.RelExpr) ctx.getFirst());
+            if(instr instanceof TamInstruction.Instruction){
+                instructionList.add((TamInstruction.Instruction) instr);
+            }
+            else{
+                instructionList.addAll((TamInstruction.InstructionList) instr);
+            }
             for(int i=1;i<ctx.size();i++){
-                instructionList.add((TamInstruction.Instruction) visitRelExpr((Ast.RelExpr) ctx.get(i)));
+                TamInstruction instr1 = visitRelExpr((Ast.RelExpr) ctx.get(i));
+                if(instr1 instanceof TamInstruction.Instruction){
+                    instructionList.add((TamInstruction.Instruction) instr1);
+                }
+                else{
+                    instructionList.addAll((TamInstruction.InstructionList) instr1);
+                }
                 instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,TamPrimitive.and.value+1));
             }
             return instructionList;
@@ -325,7 +338,47 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
 
     @Override
     public TamInstruction visitRelExpr(Ast.RelExpr ctx) {
-        return visitConcatExpr((Ast.ConcatExpr) ctx.getFirst());
+        TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
+        if(ctx.size()>1){
+            //Get ops further down list
+            List<Ast.ConcatExpr> ccExprs = new ArrayList<>();
+            List<Ast.Atom.relAtom> ops = new ArrayList<>();
+            for (Ast ast : ctx) {
+                if (ast instanceof Ast.ConcatExpr) {
+                    ccExprs.add((Ast.ConcatExpr) ast);
+                } else if (ast instanceof Ast.Atom.relAtom) {
+                    ops.add((Ast.Atom.relAtom) ast);
+                } else {
+                    throw new IllegalStateException("Unknown logical operator");
+                }
+            }
+            TamInstruction instr = visitConcatExpr(ccExprs.getFirst());
+            if(instr instanceof TamInstruction.Instruction){
+                instructionList.add((TamInstruction.Instruction) instr);
+            }
+            else{
+                instructionList.addAll((TamInstruction.InstructionList) instr);
+            }
+
+            for(int i=1;i<ccExprs.size();i++){
+                TamInstruction instr1 = visitConcatExpr(ccExprs.get(i));
+                if(instr1 instanceof TamInstruction.Instruction){
+                    instructionList.add((TamInstruction.Instruction) instr1);
+                }
+                else{
+                    instructionList.addAll((TamInstruction.InstructionList) instr1);
+                }
+                Ast.Atom.relAtom rl = ops.get(i-1);
+                int relOpOffset = getRelOp(rl);
+                if(relOpOffset == TamPrimitive.ne.value ||  relOpOffset == TamPrimitive.eq.value){
+                    instructionList.add(new TamInstruction.Instruction(TamOpcode.LOADL, CB,0,1));
+                }
+                instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,relOpOffset));
+            }
+            return instructionList;
+        }
+        else
+            return visitConcatExpr((Ast.ConcatExpr) ctx.getFirst());
     }
 
     @Override
