@@ -47,7 +47,8 @@ public interface AstVisitor<T> {
         T visitParamSubList(Ast.ParamSubList ctx);
         T visitParamList(Ast.ParamList ctx);
         T visitExpr(Ast.Expr ctx);
-        T visitLogExpr(Ast.LogExpr ctx);
+        T visitOrExpr(Ast.OrExpr ctx);
+        T visitAndExpr(Ast.AndExpr ctx);
         T visitRelExpr(Ast.RelExpr ctx);
         T visitConcatExpr(Ast.ConcatExpr ctx);
         T visitAddSubExpr(Ast.AddSubExpr ctx);

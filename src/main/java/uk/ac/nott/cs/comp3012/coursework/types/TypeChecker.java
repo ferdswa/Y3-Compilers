@@ -401,11 +401,32 @@ public class TypeChecker implements AstVisitor<Type> {
 
     @Override
     public Type visitExpr(Ast.Expr ctx) {
-        return visitLogExpr((Ast.LogExpr)ctx.getFirst());
+        return visitOrExpr((Ast.OrExpr)ctx.getFirst());
     }
 
     @Override
-    public Type visitLogExpr(Ast.LogExpr ctx) {
+    public Type visitOrExpr(Ast.OrExpr ctx) {
+        HashSet<Type> types = new HashSet<>();
+        if(ctx.size()>1){//RelExpr being calculated. Check types of all subexprs. If not == then throw error.
+            for(Ast expr: ctx){
+                if(expr instanceof Ast.AndExpr){//Find types of RelExprs's sub exprs. Ignore the ops for now as they aren't relevant for typechecking
+                    types.add(visitAndExpr((Ast.AndExpr)expr));
+                }
+            }
+            if(types.size()==1){//Ensure we're comparing exprs of equal type, then return that this evaluates to a logical value
+                return Type.BaseType.Logical;
+            }
+            else{
+                throw new UnsupportedOperationException("Attempting to perform relative comparison calculation on multiple types");
+            }
+        }
+        else{//Not a logical expression. Continue.
+            return visitAndExpr((Ast.AndExpr)ctx.getFirst());
+        }
+    }
+
+    @Override
+    public Type visitAndExpr(Ast.AndExpr ctx) {
         HashSet<Type> types = new HashSet<>();
         if(ctx.size()>1){//RelExpr being calculated. Check types of all subexprs. If not == then throw error.
             for(Ast expr: ctx){
@@ -417,6 +438,7 @@ public class TypeChecker implements AstVisitor<Type> {
                 return Type.BaseType.Logical;
             }
             else{
+                System.out.println(types);
                 throw new UnsupportedOperationException("Attempting to perform relative comparison calculation on multiple types");
             }
         }
