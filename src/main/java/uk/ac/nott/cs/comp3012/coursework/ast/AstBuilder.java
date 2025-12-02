@@ -665,7 +665,6 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         //symbols.add(op);
         return new Ast.Atom.starAtom(op);
     }
-    String sign = "+";
     @Override
     public Ast visitIntnum(NottscriptParser.IntnumContext ctx) {
         Ast.IntNum intNum = new Ast.IntNum();
@@ -679,7 +678,7 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     }
     @Override
     public Ast visitNumAtom(NottscriptParser.NumAtomContext ctx) {
-        int num = Integer.parseInt(sign + ctx.getText());
+        int num = Integer.parseInt(ctx.getText());
         return new Ast.Atom.numAtom(num);
     }
     @Override

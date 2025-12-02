@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import uk.ac.nott.cs.comp3012.coursework.ast.Ast;
 import uk.ac.nott.cs.comp3012.coursework.ast.AstBuilder;
+import uk.ac.nott.cs.comp3012.coursework.tam.TacGenerator;
 import uk.ac.nott.cs.comp3012.coursework.types.TypeChecker;
 import uk.ac.nott.cs.comp3012.coursework.util.SymbolTable;
 
@@ -86,7 +87,8 @@ public class Compiler {
         //Ensure all types match
         TypeChecker typeChecker = new TypeChecker(parent);
         System.out.println("TypeChecker: "+typeChecker.visitProgram(program));
-
+        TacGenerator tg = new TacGenerator();
+        tg.visitMulDivOp(new Ast.Atom.mulDivAtom("*"));
 
 
         byte[] code = backend.runBackend(program);

@@ -1,6 +1,19 @@
 package uk.ac.nott.cs.comp3012.coursework.tac;
 
 public enum TacOp {
-    FieldAccess, Exp, Mul, Div, Add, Sub, Lss, Leq, Grt, Geq, Eql, Neq, Goto, GotoIf,
-
+    LOAD,LOADA,
+    LOADI,
+    LOADL,
+    STORE,
+    STOREI,
+    CALL,
+    CALLI,
+    RETURN,
+    PUSH,
+    POP,
+    JUMP,
+    JUMPI,
+    JUMPIF,
+    HALT,
+    noop;
 }
