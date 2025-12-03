@@ -216,6 +216,7 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
             }
             default -> throw new IllegalStateException("Unexpected value: " + elseStmt);
         }
+        tInstrs.add(new TamInstruction.Instruction(TamOpcode.JUMP, CP,0, fInstrs.size()));//Adds an unconditional jump to skip false statements in case of true
         instructionList.add(new TamInstruction.Instruction(TamOpcode.JUMPIF, CP,0, tInstrs.size()));
         instructionList.addAll(tInstrs);
         instructionList.addAll(fInstrs);
