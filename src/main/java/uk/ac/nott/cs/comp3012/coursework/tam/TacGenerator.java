@@ -648,14 +648,17 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
             } else {
                 instructionList.addAll((TamInstruction.InstructionList) instr);
             }
+            if(ctx.size()>2){
             for(int i = ctx.size()-1; i>1; i--){//work down
                 expValue = 0;
                 visitFieldAccExpr((Ast.FieldAccessExpr) ctx.get(i-1));
                 ibase = expValue;
                 ans = Math.toIntExact(findPower(iexponent, ibase));
                 iexponent = ans;
+            }} else{
+                ans = 2;
             }
-            System.out.println(ans);//Here, ans is the final exponent.
+            //Atp ans contains the final exponent.
             for(int i = 1; i < ans; i++){
                 //Another copy of the base
                 if (instr instanceof TamInstruction.Instruction) {
