@@ -639,6 +639,7 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
             int iexponent;
             int ibase;
             expValue = 0;
+            //get the value of the final exponent
             visitFieldAccExpr((Ast.FieldAccessExpr) ctx.getLast());
             iexponent = expValue;
             //Get the value of the base and add it.
@@ -648,26 +649,51 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
             } else {
                 instructionList.addAll((TamInstruction.InstructionList) instr);
             }
-            if(ctx.size()>2){
-            for(int i = ctx.size()-1; i>1; i--){//work down
-                expValue = 0;
-                visitFieldAccExpr((Ast.FieldAccessExpr) ctx.get(i-1));
-                ibase = expValue;
-                ans = Math.toIntExact(findPower(iexponent, ibase));
-                iexponent = ans;
-            }} else{
-                ans = 2;
-            }
-            //Atp ans contains the final exponent.
-            for(int i = 1; i < ans; i++){
-                //Another copy of the base
-                if (instr instanceof TamInstruction.Instruction) {
-                    instructionList.add((TamInstruction.Instruction) instr);
-                } else {
-                    instructionList.addAll((TamInstruction.InstructionList) instr);
+            if(ctx.size() > 2) {
+                for (int i = ctx.size() - 1; i > 1; i--) {//work down
+                    expValue = 0;
+                    visitFieldAccExpr((Ast.FieldAccessExpr) ctx.get(i - 1));
+                    ibase = expValue;
+                    ans = Math.toIntExact(findPower(ibase, iexponent));
+                    iexponent = ans;
                 }
-                //Multiply
-                instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB, 0, TamPrimitive.mult.value + 1));
+            }
+            else{
+                expValue = 0;
+                visitFieldAccExpr((Ast.FieldAccessExpr) ctx.getLast());
+                ans = expValue;
+            }
+            System.out.println(ans);
+            //Atp ans contains the final exponent
+            if(ans>0){//positive
+                for(int i = 1; i < ans; i++){
+                    //Another copy of the base
+                    if (instr instanceof TamInstruction.Instruction) {
+                        instructionList.add((TamInstruction.Instruction) instr);
+                    } else {
+                        instructionList.addAll((TamInstruction.InstructionList) instr);
+                    }
+                    //Multiply
+                    instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB, 0, TamPrimitive.mult.value + 1));
+                }
+            }
+            else if(ans==0){//Make a 1, eliminating parameters
+                instructionList.add(new TamInstruction.Instruction(TamOpcode.LOADL, CB,0,0));
+                instructionList.add(new TamInstruction.Instruction(TamOpcode.LOADL, CB,0,1));
+                instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,TamPrimitive.add.value + 1));
+            }
+            else{//Negative exponents
+                for (int j = -1; j > ans; j--) {
+                    //Push another first value
+                    if (instr instanceof TamInstruction.Instruction) {
+                        instructionList.add((TamInstruction.Instruction) instr);
+                    } else {
+                        instructionList.addAll((TamInstruction.InstructionList) instr);
+                    }
+                    //Multiply first value by itself
+                    instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB, 0, TamPrimitive.div.value + 1));
+
+                }
             }
             return instructionList;
         }

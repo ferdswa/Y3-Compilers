@@ -8,6 +8,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import uk.ac.nott.cs.comp3012.coursework.ast.Ast;
 import uk.ac.nott.cs.comp3012.coursework.ast.AstBuilder;
@@ -55,9 +57,14 @@ public class Compiler {
      * @throws IOException if there is an error reading or writing
      */
     public void runCompiler(String inputFile, String outputFile) throws IOException {
+        Pattern invertPattern = Pattern.compile("-[(]");
+        Pattern deleteUPlus = Pattern.compile("[+][(]");
         StringBuilder programText = new StringBuilder();
         List<String> lines = Files.readAllLines(Path.of(inputFile));
         for(String line : lines) {
+            line = line.replaceAll(String.valueOf(invertPattern), "0-(");//Regex inversion ;)
+            line = line.replaceAll(String.valueOf(deleteUPlus),"0+(" );//Delete the useless plus symbol
+            System.out.println(line);
             line += ' ';
             programText.append(line);
         }
