@@ -23,7 +23,7 @@ public class Compiler {
 
     // backend to use
     private final Backend backend;
-    SymbolTable parent = new SymbolTable();
+    SymbolTable parent = new SymbolTable();//Whole program.
     /**
      * Construct a new compiler.
      *
@@ -93,11 +93,7 @@ public class Compiler {
         //Ensure all types match
         TypeChecker typeChecker = new TypeChecker(parent);
         System.out.println("TypeChecker: "+typeChecker.visitProgram(program));
-        TamGenerator tg = new TamGenerator();
-        tg.visitMulDivOp(new Ast.Atom.mulDivAtom("*"));
-
-
-        byte[] code = backend.runBackend(program);
+        byte[] code = backend.runBackend(program,parent);
 
         try (BufferedOutputStream out = new BufferedOutputStream(
             new FileOutputStream(outputFile))) {

@@ -4,13 +4,19 @@ import java.util.*;
 
 import uk.ac.nott.cs.comp3012.coursework.AstVisitor;
 import uk.ac.nott.cs.comp3012.coursework.ast.Ast;
+import uk.ac.nott.cs.comp3012.coursework.util.SymbolData;
+import uk.ac.nott.cs.comp3012.coursework.util.SymbolTable;
 
 import static uk.ac.nott.cs.comp3012.coursework.tam.TamRegister.*;
 
 public class TamGenerator implements AstVisitor<TamInstruction> {
-    int jumpOffset = 0;
-    Map<String, Integer> jumps = new HashMap<>();
-
+    SymbolTable symbolTable;
+    public TamGenerator(SymbolTable symbolTable) {
+        this.symbolTable=symbolTable;
+    }
+    public SymbolTable getSymbolTable() {
+        return symbolTable;
+    }
     @Override
     public TamInstruction visitProgram(Ast.Units ctx) {
         TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
@@ -38,6 +44,12 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                 }
                 case Ast.Atom.exitAtom exitAtom -> {
                     instructionList.add((TamInstruction.Instruction)visitExitStmt(exitAtom));
+                }
+                case Ast.DeclareVariable ignored ->{
+                    visitDeclareVar(ignored);
+                }
+                case Ast.NormalAssign ignored -> {
+                    visitBaseAssign(ignored);
                 }
                 default -> throw new IllegalStateException("Statement unsupported" + ctx.get(i));
             }
@@ -107,6 +119,15 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
 
     @Override
     public TamInstruction visitBaseAssign(Ast.NormalAssign ctx) {
+        String varName = ((Ast.Atom.nameAtom) ctx.getFirst()).name();
+        if(symbolTable.getChildren().getFirst().getSymbols().containsKey(varName) && !symbolTable.getChildren().getFirst().getSymbols().get(varName).type.equals("unitID")){//Valid variable to assign to
+            visitExpr((Ast.Expr)ctx.getLast());//Load the expression's value into the expValue variable. Type checking has already been done, so this will work.
+            symbolTable.getChildren().getFirst().getSymbols().get(varName).value = String.valueOf(expValue);
+        }
+        else//Assigning a non-existent variable
+        {
+            throw new IllegalStateException("You tried to assign a non-existent variable.");
+        }
         return null;
     }
 
