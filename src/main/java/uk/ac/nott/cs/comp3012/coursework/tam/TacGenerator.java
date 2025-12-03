@@ -675,8 +675,10 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
                 }
             }
             return instructionList;
-
-//            for(int i=ctx.size()-1;i>=1;i--){
+//              int iexponent;
+//              int ibase;
+//              int ans = Integer.MAX_VALUE;
+//            for(int i=ctx.size()-1;i >=1;i--){
 //                if(iexponent == Integer.MAX_VALUE ){
 //                    expValue = 0;
 //                    visitFieldAccExpr((Ast.FieldAccessExpr) ctx.get(i));
