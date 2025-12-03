@@ -512,7 +512,6 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
     @Override
     public TamInstruction visitAddSubExpr(Ast.AddSubExpr ctx) {
         TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
-        boolean negate = ctx.getFirst() instanceof Ast.Atom.addSubAtom && ((Ast.Atom.addSubAtom) ctx.getFirst()).op().equals("-");
         if(ctx.size()>1){//More than one
             //Get ops further down list
             List<Ast.MulDivExpr> mdExprs = new ArrayList<>();
@@ -542,12 +541,7 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
                     instructionList.addAll((TamInstruction.InstructionList) instr1);
                 }
                 Ast.Atom.addSubAtom as;
-                if(negate){
-                    as = ops.get(i);//First op already consumed by negation/the random plus sign
-                }
-                else{
-                    as = ops.get(i-1);
-                }
+                as = ops.get(i-1);
                 int asOffset = getAsOffset(as);
                 instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,asOffset));
             }
