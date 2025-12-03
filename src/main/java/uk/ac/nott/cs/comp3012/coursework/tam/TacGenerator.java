@@ -635,75 +635,52 @@ public class TacGenerator implements AstVisitor<TamInstruction> {
     public TamInstruction visitPowExpr(Ast.PowExpr ctx) {
         TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
         if (ctx.size() > 1) {
-            //Get base
+            int ans = 1;
+            int iexponent;
+            int ibase;
+            expValue = 0;
+            visitFieldAccExpr((Ast.FieldAccessExpr) ctx.getLast());
+            iexponent = expValue;
+            //Get the value of the base and add it.
             TamInstruction instr = visitFieldAccExpr((Ast.FieldAccessExpr) ctx.getFirst());
             if (instr instanceof TamInstruction.Instruction) {
                 instructionList.add((TamInstruction.Instruction) instr);
             } else {
                 instructionList.addAll((TamInstruction.InstructionList) instr);
             }
-            for (int i = 1; i < ctx.size(); i++) {
+            for(int i = ctx.size()-1; i>1; i--){//work down
                 expValue = 0;
-                //Get the value of the next expression in the list
-                visitFieldAccExpr((Ast.FieldAccessExpr) ctx.get(i));
-                System.out.println(expValue);
-                if (expValue > 0) {
-                    for (int j = 1; j < expValue; j++) {
-                        //Push another first value
-                        if (instr instanceof TamInstruction.Instruction) {
-                            instructionList.add((TamInstruction.Instruction) instr);
-                        } else {
-                            instructionList.addAll((TamInstruction.InstructionList) instr);
-                        }
-                        //Multiply first value by itself
-                        instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB, 0, TamPrimitive.mult.value + 1));
-                    }
-                } else if (expValue < 0) {//Negative exponentials. They don't work.
-                    for (int j = -1; j > expValue; j--) {
-                        //Push another first value
-                        if (instr instanceof TamInstruction.Instruction) {
-                            instructionList.add((TamInstruction.Instruction) instr);
-                        } else {
-                            instructionList.addAll((TamInstruction.InstructionList) instr);
-                        }
-                        //Multiply first value by itself
-                        instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB, 0, TamPrimitive.div.value + 1));
-                    }
+                visitFieldAccExpr((Ast.FieldAccessExpr) ctx.get(i-1));
+                ibase = expValue;
+                ans = Math.toIntExact(findPower(iexponent, ibase));
+                iexponent = ans;
+            }
+            System.out.println(ans);//Here, ans is the final exponent.
+            for(int i = 1; i < ans; i++){
+                //Another copy of the base
+                if (instr instanceof TamInstruction.Instruction) {
+                    instructionList.add((TamInstruction.Instruction) instr);
+                } else {
+                    instructionList.addAll((TamInstruction.InstructionList) instr);
                 }
-                else{
-                    instructionList.add(new TamInstruction.Instruction(TamOpcode.LOADL, CB,0,1));
-                    instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,TamPrimitive.mult.value+1));
-                }
+                //Multiply
+                instructionList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB, 0, TamPrimitive.mult.value + 1));
             }
             return instructionList;
-//              int iexponent;
-//              int ibase;
-//              int ans = Integer.MAX_VALUE;
-//            for(int i=ctx.size()-1;i >=1;i--){
-//                if(iexponent == Integer.MAX_VALUE ){
-//                    expValue = 0;
-//                    visitFieldAccExpr((Ast.FieldAccessExpr) ctx.get(i));
-//                    iexponent = expValue;
-//                    expValue = 0;
-//                    visitFieldAccExpr((Ast.FieldAccessExpr) ctx.get(i-1));
-//                    ibase = expValue;
-//                }
-//                else{
-//                    expValue = 0;
-//                    visitFieldAccExpr((Ast.FieldAccessExpr) ctx.get(i-1));
-//                    ibase = ans;
-//                }
-//
-//                for(int j=0;j<iexponent;j++){
-//                    ans *= ibase;
-//                }
-//                iexponent = ans;
-//                System.out.println(ans);
-//            }//One more iteration
-//            return new TamInstruction.Instruction(TamOpcode.LOADL, CB,0,iexponent);
         }
         else
             return visitFieldAccExpr((Ast.FieldAccessExpr) ctx.getFirst());
+    }
+
+    static long findPower(int a, int n) {
+        long result = 1;
+
+        // Multiply 'a' by itself 'n' times
+        for (int i = 0; i < n; ++i) {
+            result *= a;
+        }
+
+        return result;
     }
 
     @Override
