@@ -124,7 +124,7 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
             visitExpr((Ast.Expr)ctx.getLast());//Load the expression's value into the expValue variable. Type checking has already been done, so this will work.
             symbolTable.getChildren().getFirst().getSymbols().get(varName).value = String.valueOf(expValue);
         }
-        else//Assigning a non-existent variable
+        else//Assigning a non-existent variable. Should be caught by the typechecker, but if it's not it'll be stopped here
         {
             throw new IllegalStateException("You tried to assign a non-existent variable.");
         }

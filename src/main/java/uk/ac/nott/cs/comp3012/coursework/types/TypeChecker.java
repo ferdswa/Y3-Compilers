@@ -163,6 +163,9 @@ public class TypeChecker implements AstVisitor<Type> {
         if(set.size()==1){
             return Type.BaseType.OK;
         }
+        if(set.contains(null)){
+            throw new UnsupportedOperationException("Attempted assignment of a non-existent variable");
+        }
         throw new UnsupportedOperationException("Type of expression does not match type of variable");
     }
 
