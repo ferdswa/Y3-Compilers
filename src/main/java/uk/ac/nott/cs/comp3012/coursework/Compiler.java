@@ -8,12 +8,11 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import uk.ac.nott.cs.comp3012.coursework.ast.Ast;
 import uk.ac.nott.cs.comp3012.coursework.ast.AstBuilder;
-import uk.ac.nott.cs.comp3012.coursework.tam.TacGenerator;
+import uk.ac.nott.cs.comp3012.coursework.tam.TamGenerator;
 import uk.ac.nott.cs.comp3012.coursework.types.TypeChecker;
 import uk.ac.nott.cs.comp3012.coursework.util.SymbolTable;
 
@@ -66,7 +65,7 @@ public class Compiler {
             line = line.replaceAll(String.valueOf(deleteUPlus),"0+(" );//Delete the useless plus symbol
             System.out.println(line);
             line += ' ';
-            programText.append(line);
+            programText.append(line).append("\r\n");
         }
 
         //Build the AST
@@ -94,7 +93,7 @@ public class Compiler {
         //Ensure all types match
         TypeChecker typeChecker = new TypeChecker(parent);
         System.out.println("TypeChecker: "+typeChecker.visitProgram(program));
-        TacGenerator tg = new TacGenerator();
+        TamGenerator tg = new TamGenerator();
         tg.visitMulDivOp(new Ast.Atom.mulDivAtom("*"));
 
 

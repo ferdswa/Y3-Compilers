@@ -7,7 +7,7 @@ import uk.ac.nott.cs.comp3012.coursework.ast.Ast;
 
 import static uk.ac.nott.cs.comp3012.coursework.tam.TamRegister.*;
 
-public class TacGenerator implements AstVisitor<TamInstruction> {
+public class TamGenerator implements AstVisitor<TamInstruction> {
     int jumpOffset = 0;
     Map<String, Integer> jumps = new HashMap<>();
 
