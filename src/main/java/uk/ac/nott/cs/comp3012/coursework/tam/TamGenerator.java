@@ -748,6 +748,9 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
             case Ast.ExprSExpr exprSExpr -> {
                 return visitExprSExpr(exprSExpr);
             }
+            case Ast.NameSExpr nameSExpr -> {
+                return visitNameSExpr(nameSExpr);
+            }
             default -> throw new IllegalStateException("Unsupported expression" + ctx.getFirst());
         }
     }
@@ -802,7 +805,7 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
 
     @Override
     public TamInstruction visitNameSExpr(Ast.NameSExpr ctx) {
-        return null;
+        return visitNameAtom((Ast.Atom.nameAtom) ctx.getFirst());
     }
 
     @Override
@@ -856,7 +859,6 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
         }
     }
 
-    boolean first = false;
     @Override
     public TamInstruction visitNumAtom(Ast.Atom.numAtom ctx) {
         expValue2 = ctx.i();
@@ -864,8 +866,26 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
     }
 
     @Override
-    public TamInstruction visitNameAtom(Ast.Atom.nameAtom ctx) {
-        return null;
+    public TamInstruction visitNameAtom(Ast.Atom.nameAtom ctx) {//Get the value of the variable
+        if(symbolTable.getChildren().getFirst().getSymbols().containsKey(ctx.name()) && !symbolTable.getChildren().getFirst().getSymbols().get(ctx.name()).type.equals("unitID")){//Valid variable to assign
+            if(symbolTable.getChildren().getFirst().getSymbols().get(ctx.name()).type.equals("integer")) {
+                int value = Integer.parseInt(symbolTable.getChildren().getFirst().getSymbols().get(ctx.name()).value);
+                System.out.println(value);
+                expValue += value;
+                expValue2 = value;
+                return new TamInstruction.Instruction(TamOpcode.LOADL, CB, 0, value);
+            }
+            else if(symbolTable.getChildren().getFirst().getSymbols().get(ctx.name()).type.equals("logical")){
+                return new TamInstruction.Instruction(TamOpcode.LOADL, CB, 0, Integer.parseInt(symbolTable.getChildren().getFirst().getSymbols().get(ctx.name()).value));
+            }
+            else{
+                throw new UnsupportedOperationException("Unsupported type");
+            }
+        }
+        else//Assigning a non-existent variable. Should be caught by the typechecker, but if it's not it'll be stopped here
+        {
+            throw new IllegalStateException("What are you looking for?");
+        }
     }
 
     @Override
