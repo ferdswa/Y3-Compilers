@@ -6,12 +6,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 import uk.ac.nott.cs.comp3012.coursework.ast.Ast;
 import uk.ac.nott.cs.comp3012.coursework.ast.AstBuilder;
-import uk.ac.nott.cs.comp3012.coursework.tam.TacGenerator;
 import uk.ac.nott.cs.comp3012.coursework.types.TypeChecker;
 import uk.ac.nott.cs.comp3012.coursework.util.SymbolTable;
 
@@ -22,7 +23,8 @@ public class Compiler {
 
     // backend to use
     private final Backend backend;
-    SymbolTable parent = new SymbolTable();
+    SymbolTable parent = new SymbolTable();//Whole program.
+    static String[] params;
     /**
      * Construct a new compiler.
      *
@@ -40,10 +42,10 @@ public class Compiler {
 
         String inputFile = args[0];
         String outputFile = args[1];
-
-        Backend backend = new   Backend();
+        params = Arrays.copyOfRange(args, 2, args.length);
+        Backend backend = new Backend();
         Compiler compiler = new Compiler(backend);
-        compiler.runCompiler(inputFile, outputFile);
+        compiler.runCompiler(inputFile, outputFile, params);
     }
 
     /**
@@ -54,12 +56,17 @@ public class Compiler {
      * @param outputFile file to write target code to
      * @throws IOException if there is an error reading or writing
      */
-    public void runCompiler(String inputFile, String outputFile) throws IOException {
+    public void runCompiler(String inputFile, String outputFile, String[] stdInput) throws IOException {
+        Pattern invertPattern = Pattern.compile("-[(]");
+        Pattern deleteUPlus = Pattern.compile("[+][(]");
         StringBuilder programText = new StringBuilder();
         List<String> lines = Files.readAllLines(Path.of(inputFile));
         for(String line : lines) {
+            line = line.replaceAll(String.valueOf(invertPattern), "0-(");//Regex inversion ;)
+            line = line.replaceAll(String.valueOf(deleteUPlus),"0+(" );//Delete the useless plus symbol
+            System.out.println(line);
             line += ' ';
-            programText.append(line);
+            programText.append(line).append("\r\n");
         }
 
         //Build the AST
@@ -87,11 +94,7 @@ public class Compiler {
         //Ensure all types match
         TypeChecker typeChecker = new TypeChecker(parent);
         System.out.println("TypeChecker: "+typeChecker.visitProgram(program));
-        TacGenerator tg = new TacGenerator();
-        tg.visitMulDivOp(new Ast.Atom.mulDivAtom("*"));
-
-
-        byte[] code = backend.runBackend(program);
+        byte[] code = backend.runBackend(program,parent,params);
 
         try (BufferedOutputStream out = new BufferedOutputStream(
             new FileOutputStream(outputFile))) {

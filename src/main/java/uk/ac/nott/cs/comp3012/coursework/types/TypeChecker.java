@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+//Relevant methods are above unimplemented ones.
 public class TypeChecker implements AstVisitor<Type> {
     SymbolTable symbolTable = new SymbolTable();
     public TypeChecker(SymbolTable symbolData) {
@@ -89,115 +90,34 @@ public class TypeChecker implements AstVisitor<Type> {
                 case Ast.IfStatement ifStmt -> {
                     visitIfStmt(ifStmt);
                 }
+                case Ast.DoWhile doWhile -> {
+                    visitDoWhile(doWhile);
+                }
                 default -> throw new UnsupportedOperationException("Statement type not supported :(");
             }
         }
         return Type.BaseType.OK;
     }
-
-    @Override
-    public Type visitVoidFuncBlock(Ast.FuncRVoidUnit ctx) {
-        return null;
-    }
-
-    @Override
-    public Type visitReturnFuncBlock(Ast.FuncRValueUnit ctx) {
-        return null;
-    }
-
-    @Override
-    public Type visitSubrtBlock(Ast.SbrtUnit ctx) {
-        return null;
-    }
-
-    @Override
-    public Type visitCustomTypeDeclBlock(Ast.CustomTypeDefUnit ctx) {
-        return null;
-    }
-
-    @Override
-    public Type visitDeclaratorParamList(Ast.FuncDefineParams ctx) {
-        return null;
-    }
-
-    @Override
-    public Type visitNameUnit(Ast.NameUnit ctx) {
-        return null;
-    }
-
-    @Override
-    public Type visitDeclareVar(Ast.DeclareVariable ctx) {
-        return null;
-    }
-
-    @Override
-    public Type visitDeclPtr(Ast.DeclarePointer ctx) {
-        return null;
-    }
-
-    @Override
-    public Type visitDeclArray(Ast.DeclareArray ctx) {
-        return null;
-    }
-
-    @Override
-    public Type visitDeclPtrArray(Ast.DeclarePointerArray ctx) {
-        return null;
-    }
-
-    @Override
-    public Type visitInbuilt(Ast.InbuiltTypeSpec ctx) {
-        return null;
-    }
-
-    @Override
-    public Type visitCustom(Ast.CustomTypeSpec ctx) {
-        return null;
-    }
-
     @Override
     public Type visitBaseAssign(Ast.NormalAssign ctx) {
         HashSet<Type> set = new HashSet<>();
         set.add(visitNameAtom((Ast.Atom.nameAtom) ctx.getFirst()));
         set.add(visitExpr((Ast.Expr) ctx.getLast()));
+        System.out.println(set.toString());
         if(set.size()==1){
             return Type.BaseType.OK;
         }
+        if(set.contains(null)){
+            throw new UnsupportedOperationException("Attempted assignment of a non-existent variable");
+        }
         throw new UnsupportedOperationException("Type of expression does not match type of variable");
     }
-
-
-    @Override
-    public Type visitArrayAssign(Ast.ArrayAssign ctx) {
-        return null;
-    }
-
-    @Override
-    public Type visitCtAssign(Ast.CustomTypeAssign ctx) {
-        return null;
-    }
-
-    @Override
-    public Type visitCtArrayAssign(Ast.CustomTypeArrayAssign ctx) {
-        return null;
-    }
-
-    @Override
-    public Type visitCall(Ast.SbrtCall ctx) {
-        return null;
-    }
-
     @Override
     public Type visitIfBlock(Ast.IfBlock ctx) {
-        return visitComplexIf(ctx);
-    }
-
-    private Type visitComplexIf(Ast ComplexIf){
-        Ast.IfElseBlock ifElse = (Ast.IfElseBlock)ComplexIf;
-        Type t = visitExpr((Ast.Expr) ifElse.getFirst());
+        Type t = visitExpr((Ast.Expr) ctx.getFirst());
         if(t==Type.BaseType.Logical){
-            for(int i = 1; i < ifElse.size(); i++) {
-                switch (ifElse.get(i)) {//Statements
+            for(int i = 1; i < ctx.size(); i++) {
+                switch (ctx.get(i)) {//Statements
                     case Ast.NormalAssign normalAssign -> {
                         visitBaseAssign(normalAssign);
                     }
@@ -228,6 +148,9 @@ public class TypeChecker implements AstVisitor<Type> {
                     case Ast.ElseStmt elseStmt -> {
                         visitElseStmt(elseStmt);
                     }
+                    case Ast.Atom.exitAtom exitAtom -> {
+                        visitExitStmt(exitAtom);
+                    }
                     default -> throw new UnsupportedOperationException("Statement type not supported :(");
                 }
             }
@@ -240,12 +163,94 @@ public class TypeChecker implements AstVisitor<Type> {
 
     @Override
     public Type visitIfElse(Ast.IfElseBlock ctx) {
-        return visitComplexIf(ctx);
+        Type t = visitExpr((Ast.Expr) ctx.getFirst());
+        if(t==Type.BaseType.Logical){
+            for(int i = 1; i < ctx.size(); i++) {
+                switch (ctx.get(i)) {//Statements
+                    case Ast.NormalAssign normalAssign -> {
+                        visitBaseAssign(normalAssign);
+                    }
+                    case Ast.ArrayAssign arrayAssign -> {
+                        visitArrayAssign(arrayAssign);
+                    }
+                    case Ast.CustomTypeAssign customTypeAssign -> {
+                        visitCtAssign(customTypeAssign);
+                    }
+                    case Ast.CustomTypeArrayAssign customTypeArrayAssign -> {
+                        visitCtArrayAssign(customTypeArrayAssign);
+                    }
+                    case Ast.Read read -> {
+                        visitRead(read);
+                    }
+                    case Ast.Write write -> {
+                        visitWrite(write);
+                    }
+                    case Ast.IfElseBlock ifElseBlock -> {
+                        visitIfElse(ifElseBlock);
+                    }
+                    case Ast.IfBlock ifBlock -> {
+                        visitIfBlock(ifBlock);
+                    }
+                    case Ast.IfStatement ifStmt -> {
+                        visitIfStmt(ifStmt);
+                    }
+                    case Ast.Atom.exitAtom exitAtom -> {
+                        visitExitStmt(exitAtom);
+                    }
+                    case Ast.ElseStmt elseStmt -> {
+                        visitElseStmt(elseStmt);
+                    }
+                    default -> throw new UnsupportedOperationException("Statement type not supported :(");
+                }
+            }
+        }
+        else{
+            throw new UnsupportedOperationException("If statement expression is not a logical expression");
+        }
+        return Type.BaseType.OK;
     }
 
     @Override
     public Type visitElseStmt(Ast.ElseStmt ctx) {
-        return null;
+        for(int i = 1; i < ctx.size(); i++) {
+            switch (ctx.get(i)) {//Statements
+                case Ast.NormalAssign normalAssign -> {
+                    visitBaseAssign(normalAssign);
+                }
+                case Ast.ArrayAssign arrayAssign -> {
+                    visitArrayAssign(arrayAssign);
+                }
+                case Ast.CustomTypeAssign customTypeAssign -> {
+                    visitCtAssign(customTypeAssign);
+                }
+                case Ast.CustomTypeArrayAssign customTypeArrayAssign -> {
+                    visitCtArrayAssign(customTypeArrayAssign);
+                }
+                case Ast.Read read -> {
+                    visitRead(read);
+                }
+                case Ast.Write write -> {
+                    visitWrite(write);
+                }
+                case Ast.IfElseBlock ifElseBlock -> {
+                    visitIfElse(ifElseBlock);
+                }
+                case Ast.IfBlock ifBlock -> {
+                    visitIfBlock(ifBlock);
+                }
+                case Ast.IfStatement ifStmt -> {
+                    visitIfStmt(ifStmt);
+                }
+                case Ast.Atom.exitAtom exitAtom -> {
+                    visitExitStmt(exitAtom);
+                }
+                case Ast.ElseStmt elseStmt -> {
+                    visitElseStmt(elseStmt);
+                }
+                default -> throw new UnsupportedOperationException("Statement type not supported :(");
+            }
+        }
+        return Type.BaseType.OK;
     }
 
     @Override
@@ -280,6 +285,9 @@ public class TypeChecker implements AstVisitor<Type> {
                 case Ast.IfStatement ifStmt -> {
                     return visitIfStmt(ifStmt);
                 }
+                case Ast.Atom.exitAtom exitAtom -> {
+                    return visitExitStmt(exitAtom);
+                }
                 default -> throw new UnsupportedOperationException("Statement type not supported :(");
             }
         }
@@ -289,24 +297,10 @@ public class TypeChecker implements AstVisitor<Type> {
     }
 
     @Override
-    public Type visitDoIncrN1(Ast.DoIncrNot1 ctx) {
-        return null;
-    }
-
-    @Override
-    public Type visitDoIncr1(Ast.DoIncr1 ctx) {
-        return null;
-    }
-
-    @Override
-    public Type visitDoWhile(Ast.DoWhile ctx) {
-        return null;
-    }
-
-    @Override
     public Type visitRead(Ast.Read ctx) {
         for(Ast ctx1: ctx){//Run through the list of read parameters, if nothing is thrown then OK
-            visitReadParam((Ast.ReadParam) ctx1);
+            //visitReadParam((Ast.ReadParam) ctx1); will be used when i return when i've more time
+            visitNameAtom((Ast.Atom.nameAtom) ctx1);
         }
         return Type.BaseType.OK;
     }
@@ -317,31 +311,6 @@ public class TypeChecker implements AstVisitor<Type> {
             visitExpr((Ast.Expr) ctx1);
         }
         return Type.BaseType.OK;
-    }
-
-    @Override
-    public Type visitAllocPtr(Ast.AllocPtr ctx) {
-        return null;
-    }
-
-    @Override
-    public Type visitAllocPtrArray(Ast.AllocPtrArray ctx) {
-        return null;
-    }
-
-    @Override
-    public Type visitDeallocPtr(Ast.DeallocPtr ctx) {
-        return null;
-    }
-
-    @Override
-    public Type visitFuncCall(Ast.FuncCall ctx) {
-        return null;
-    }
-
-    @Override
-    public Type visitDoParam(Ast.DoParam ctx) {
-        return null;
     }
 
     @Override
@@ -388,20 +357,25 @@ public class TypeChecker implements AstVisitor<Type> {
         }
         return baseType;
     }
-
-    @Override
-    public Type visitParamSubList(Ast.ParamSubList ctx) {
-        return null;
-    }
-
-    @Override
-    public Type visitParamList(Ast.ParamList ctx) {
-        return null;
-    }
-
     @Override
     public Type visitExpr(Ast.Expr ctx) {
-        return visitOrExpr((Ast.OrExpr)ctx.getFirst());
+        HashSet<Type> types = new HashSet<>();
+        if(ctx.size() > 1){
+            for(Ast expr: ctx) {
+                if (expr instanceof Ast.OrExpr) {//Find types of RelExprs's sub exprs. Ignore the ops for now as they aren't relevant for typechecking
+                    types.add(visitOrExpr((Ast.OrExpr) expr));
+                }
+            }
+            if(types.size()==1){//Ensure we're comparing exprs of equal type, then return that this evaluates to a logical value
+                return Type.BaseType.Logical;
+            }
+            else {
+                throw new UnsupportedOperationException("INVALID EXPRESSION, MUST COMPARE SAME TYPES");
+            }
+        }
+        else{//Not a logical expression. Continue.
+            return visitOrExpr((Ast.OrExpr)ctx.getFirst());
+        }
     }
 
     @Override
@@ -497,7 +471,7 @@ public class TypeChecker implements AstVisitor<Type> {
                 return addSubLongVerify(ctx, types);
             }
             else{//Not an addsub expression. Continue. Ensure that the type of the subexpr is a number, as it is being hit with a sign
-                Type t = visitFieldAccExpr((Ast.FieldAccessExpr)ctx.getFirst());
+                Type t = visitMulDivExpr((Ast.MulDivExpr)ctx.getLast());
                 if(t == Type.BaseType.Number)
                     return t;
                 else
@@ -666,14 +640,6 @@ public class TypeChecker implements AstVisitor<Type> {
     public Type visitArrSExpr(Ast.ArrayDef ctx) {
         return visitArray(ctx);
     }
-
-    @Override
-    public Type visitFuncSExpr(Ast.FuncSExpr ctx) {//This catches both arrays and function calls. Check current level symbol table, if present and an array -> array, if not, check level above for a method name.
-        //Find the table using the nameAtom
-        //find the return value of the table
-        return null;
-    }
-
     @Override
     public Type visitNameSExpr(Ast.NameSExpr ctx) {
         if(ctx.getFirst() instanceof Ast.Atom.nameAtom) {
@@ -681,7 +647,177 @@ public class TypeChecker implements AstVisitor<Type> {
         }
         throw new UnsupportedOperationException("Not a name");
     }
+    @Override
+    public Type visitIntnum(Ast.IntNum ctx) {
+        return Type.BaseType.Number;
+    }
 
+    @Override
+    public Type visitNumAtom(Ast.Atom.numAtom ctx) {
+        return Type.BaseType.Number;
+    }
+
+    @Override
+    public Type visitNameAtom(Ast.Atom.nameAtom ctx) {
+        AtomicReference<String> iType = new AtomicReference<>("");
+        symbolTable.getSymbols().forEach((k,v)->{
+            if(k.equals(ctx.name())){
+                iType.set(v.type);
+            }
+        });
+        switch (iType.get()) {
+            case "integer", "real" -> {
+                return Type.BaseType.Number;
+            }
+            case "character" -> {
+                return Type.BaseType.Character;
+            }
+            case "logical" -> {
+                return Type.BaseType.Logical;
+            }
+            default -> {
+                return null;
+            }
+        }
+    }
+
+
+
+    @Override
+    public Type visitVoidFuncBlock(Ast.FuncRVoidUnit ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitReturnFuncBlock(Ast.FuncRValueUnit ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitSubrtBlock(Ast.SbrtUnit ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitCustomTypeDeclBlock(Ast.CustomTypeDefUnit ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitDeclaratorParamList(Ast.FuncDefineParams ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitNameUnit(Ast.NameUnit ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitDeclareVar(Ast.DeclareVariable ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitDeclPtr(Ast.DeclarePointer ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitDeclArray(Ast.DeclareArray ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitDeclPtrArray(Ast.DeclarePointerArray ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitInbuilt(Ast.InbuiltTypeSpec ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitCustom(Ast.CustomTypeSpec ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitArrayAssign(Ast.ArrayAssign ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitCtAssign(Ast.CustomTypeAssign ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitCtArrayAssign(Ast.CustomTypeArrayAssign ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitCall(Ast.SbrtCall ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitDoIncrN1(Ast.DoIncrNot1 ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitDoIncr1(Ast.DoIncr1 ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitDoWhile(Ast.DoWhile ctx) {
+        return null;
+    }
+    @Override
+    public Type visitAllocPtr(Ast.AllocPtr ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitAllocPtrArray(Ast.AllocPtrArray ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitDeallocPtr(Ast.DeallocPtr ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitFuncCall(Ast.FuncCall ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitDoParam(Ast.DoParam ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitParamSubList(Ast.ParamSubList ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitParamList(Ast.ParamList ctx) {
+        return null;
+    }
+
+    @Override
+    public Type visitFuncSExpr(Ast.FuncSExpr ctx) {//This catches both arrays and function calls. Check current level symbol table, if present and an array -> array, if not, check level above for a method name.
+        //Find the table using the nameAtom
+        //find the return value of the table
+        return null;
+    }
     @Override
     public Type visitRelativeOp(Ast.Atom.relAtom ctx) {
         return null;
@@ -713,39 +849,6 @@ public class TypeChecker implements AstVisitor<Type> {
         return null;
     }
 
-    @Override
-    public Type visitIntnum(Ast.IntNum ctx) {
-        return Type.BaseType.Number;
-    }
-
-    @Override
-    public Type visitNumAtom(Ast.Atom.numAtom ctx) {
-        return Type.BaseType.Number;
-    }
-
-    @Override
-    public Type visitNameAtom(Ast.Atom.nameAtom ctx) {
-        AtomicReference<String> iType = new AtomicReference<>("");
-        symbolTable.getSymbols().forEach((k,v)->{
-           if(k.equals(ctx.name())){
-               iType.set(v.type);
-           }
-        });
-        switch (iType.get()) {
-            case "integer", "real" -> {
-                return Type.BaseType.Number;
-            }
-            case "character" -> {
-                return Type.BaseType.Character;
-            }
-            case "logical" -> {
-                return Type.BaseType.Logical;
-            }
-            default -> {
-                return null;
-            }
-        }
-    }
 
     @Override
     public Type visitNodeAtom(Ast.Atom.nodeAtom ctx) {
@@ -755,6 +858,11 @@ public class TypeChecker implements AstVisitor<Type> {
     @Override
     public Type visitOctAtom(Ast.Atom.octNumAtom ctx) {
         return Type.BaseType.Number;
+    }
+
+    @Override
+    public Type visitExitStmt(Ast.Atom.exitAtom ctx) {
+        return null;
     }
 
     @Override

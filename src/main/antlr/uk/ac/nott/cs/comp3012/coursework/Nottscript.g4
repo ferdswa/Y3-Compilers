@@ -24,18 +24,18 @@ statement: nameAtom ASSIGN expr #baseAssign
            | IF LEFTBRACKET expr RIGHTBRACKET THEN statement+ END IF #ifBlock
            | IF LEFTBRACKET expr RIGHTBRACKET THEN statement+ elseStmt END IF #ifElse
            | IF LEFTBRACKET expr RIGHTBRACKET statement #ifStmt
-           | DO nameAtom ASSIGN doParam COMMA doParam COMMA doParam statement+ nodeAtom nodeAtom #doIncrN1
-           | DO nameAtom ASSIGN doParam COMMA doParam statement+ nodeAtom nodeAtom #doIncr1
-           | DO nodeAtom LEFTBRACKET expr RIGHTBRACKET statement+ nodeAtom nodeAtom #doWhile
-           | READ readParam (COMMA readParam)* #read
+           | DO nameAtom ASSIGN doParam COMMA doParam COMMA doParam statement+ END DO #doIncrN1
+           | DO nameAtom ASSIGN doParam COMMA doParam statement+ END DO #doIncr1
+           | DO WHILE LEFTBRACKET expr RIGHTBRACKET statement+ END DO #doWhile
+           | READ nameAtom (COMMA nameAtom)* #read
            | WRITE expr (COMMA expr)* #write
            | ALLOCATE nameAtom #allocPtr
            | ALLOCATE nameAtom COMMA arrayIndex #allocPtrArray
            | DEALLOCATE nameAtom #deallocPtr
-           | CALL LEFTBRACKET paramList? RIGHTBRACKET #funcCall;
-elseStmt: nodeAtom statement+;//Done
+           | CALL LEFTBRACKET paramList? RIGHTBRACKET #funcCall
+           | EXIT #exitStmt;
+elseStmt: ELSE statement+;//Done
 doParam: (intnum|nameAtom);//Done
-readParam: (nameAtom|array);//Done
 arrayIndex: (numAtom|nameAtom);//Done
 array: nameAtom LEFTBRACKET arrayIndex (COMMA arrayIndex)* RIGHTBRACKET;
 paramSubList: (nameAtom|expr);
@@ -46,7 +46,7 @@ orExpr: andExpr(OR andExpr)*;
 andExpr: relExpr(AND relExpr)*;
 relExpr: concatExpr(relativeOp concatExpr)*;
 concatExpr: addSubExpr(CONCAT addSubExpr)*;
-addSubExpr: addSubOp? mulDivExpr(addSubOp mulDivExpr)*;
+addSubExpr: mulDivExpr(addSubOp mulDivExpr)*;
 mulDivExpr: powExpr (mulDivOp powExpr)*;
 powExpr: fieldAccExpr (POW fieldAccExpr)*;
 fieldAccExpr: basic(FIELDACCESS basic)?;
@@ -72,30 +72,13 @@ intnum: addSubOp? numAtom;
 numAtom: USIGNINT;
 nameAtom: NAME;
 nodeAtom:
-         ALLOCATE
-       | BREAK
-       | CALL
-       | CHARACTER
-       | DEALLOCATE
-       | DO
-       | ELSE
-       | END
        | FUNCTION
-       | IF
-       | INTEGER
-       | LOGICAL
        | POINTER
        | PROGRAM
-       | READ
-       | REAL
-       | RESULT
-       | SUBROUTINE
-       | THEN
-       | TYPE
-       | WHILE
-       | WRITE;
+       | SUBROUTINE;
 //Lexer rules
 //Keywords
+EXIT: 'exit';
 ALLOCATE: 'allocate';
 BREAK: 'break';
 CALL: 'call';
@@ -158,9 +141,9 @@ HEXNUM: [z]'"'HEXDIG+'"';
 USIGNINT: DIGIT+;
 REALNUM: SIGN?DIGIT+'.'DIGIT*//Either not both
         | SIGN?DIGIT*'.'DIGIT+;
-COMMENT: SPACES*'!'[\t -~]*NEWLINE* -> skip;//whitespace ignored pre comment
+COMMENT: SPACES*'!'[\t -~]*NEWLINE -> skip;//whitespace ignored pre comment
 WHITESPACE: (SPACES|NEWLINE)+ -> skip;//Skip all whitespaces
-NEWLINE: [\r\n]+;
+NEWLINE: [\r\n];
 //Fragments
 fragment ALPHANUM: DIGIT|LETTER;
 fragment USCORE: '_';

@@ -61,7 +61,9 @@ public interface Ast{
         record nodeAtom(String nodeType) implements Atom {
 
         }
+        record exitAtom(String exitType) implements Atom {
 
+        }
     }
     class CustomTypeSpec extends ArrayList<Ast> implements Ast {
         public CustomTypeSpec() {super();}

@@ -1,16 +1,16 @@
 package uk.ac.nott.cs.comp3012.coursework;
 
 import uk.ac.nott.cs.comp3012.coursework.ast.Ast;
-import uk.ac.nott.cs.comp3012.coursework.tam.TacGenerator;
+import uk.ac.nott.cs.comp3012.coursework.tam.TamGenerator;
 import uk.ac.nott.cs.comp3012.coursework.tam.TamInstruction;
-
-import java.util.ArrayList;
+import uk.ac.nott.cs.comp3012.coursework.util.SymbolTable;
 
 public class Backend {
-    public byte[] runBackend(Ast program){
-        TacGenerator tacGenerator = new TacGenerator();
-        TamInstruction.InstructionList instructionList = (TamInstruction.InstructionList) tacGenerator.visitProgram((Ast.Units) program);
+    public byte[] runBackend(Ast program, SymbolTable symbols, String[] params) {
+        TamGenerator tamGenerator = new TamGenerator(symbols, params);
+        TamInstruction.InstructionList instructionList = (TamInstruction.InstructionList) tamGenerator.visitProgram((Ast.Units) program);
         System.out.println(instructionList.toString());
+        System.out.println(tamGenerator.getSymbolTable().getChildren().getFirst().getSymbols());
         return instructionList.toByteArray();
     }
 }

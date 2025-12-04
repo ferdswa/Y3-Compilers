@@ -309,12 +309,14 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitElseStmt(NottscriptParser.ElseStmtContext ctx) {
         Ast.ElseStmt elseStmt = new Ast.ElseStmt();
-        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom();
-        elseStmt.add(visit(nodeAtom));
         for(NottscriptParser.StatementContext statement : ctx.statement()){
             elseStmt.add(visit(statement));
         }
         return elseStmt;
+    }
+    @Override
+    public Ast visitExitStmt(NottscriptParser.ExitStmtContext ctx) {
+        return new Ast.Atom.exitAtom("exit");
     }
     @Override
     public Ast visitIfStmt(NottscriptParser.IfStmtContext ctx) {
@@ -341,8 +343,6 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitDoIncrN1(NottscriptParser.DoIncrN1Context ctx) {
         Ast.DoIncrNot1 doIncrNot1 = new Ast.DoIncrNot1();
-        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom(0);
-        doIncrNot1.add(visit(nodeAtom));
         for(NottscriptParser.DoParamContext doParamContext : ctx.doParam()){
             doIncrNot1.add(visit(doParamContext));
         }
@@ -354,8 +354,6 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitDoIncr1(NottscriptParser.DoIncr1Context ctx) {
         Ast.DoIncr1 doIncr1 = new Ast.DoIncr1();
-        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom(0);
-        doIncr1.add(visit(nodeAtom));
         for(NottscriptParser.DoParamContext doParamContext : ctx.doParam()){
             doIncr1.add(visit(doParamContext));
         }
@@ -367,8 +365,6 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitDoWhile(NottscriptParser.DoWhileContext ctx) {
         Ast.DoWhile doWhile = new Ast.DoWhile();
-        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom(0);
-        doWhile.add(visit(nodeAtom));
         NottscriptParser.ExprContext expr = ctx.expr();
         doWhile.add(visit(expr));
         for(NottscriptParser.StatementContext statement : ctx.statement()){
@@ -376,23 +372,24 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         }
         return doWhile;
     }
-    @Override
-    public Ast visitReadParam(NottscriptParser.ReadParamContext ctx) {
-        Ast.ReadParam readParam = new Ast.ReadParam();
-        NottscriptParser.NameAtomContext name =  ctx.nameAtom();
-        if(name!=null){
-            readParam.add(visit(name));
-        }
-        else{
-            NottscriptParser.ArrayContext array = ctx.array();
-            readParam.add(visit(array));
-        }
-        return readParam;
-    }
+    //With more time (due in jan for example) arrays could've been implemented...
+//    @Override
+//    public Ast visitReadParam(NottscriptParser.ReadParamContext ctx) {
+//        Ast.ReadParam readParam = new Ast.ReadParam();
+//        NottscriptParser.NameAtomContext name =  ctx.nameAtom();
+//        if(name!=null){
+//            readParam.add(visit(name));
+//        }
+//        else{
+//            NottscriptParser.ArrayContext array = ctx.array();
+//            readParam.add(visit(array));
+//        }
+//        return readParam;
+//    }
     @Override
     public Ast visitRead(NottscriptParser.ReadContext ctx) {
         Ast.Read read = new Ast.Read();
-        for(NottscriptParser.ReadParamContext readParamContext : ctx.readParam()){
+        for(NottscriptParser.NameAtomContext readParamContext : ctx.nameAtom()){
             read.add(visit(readParamContext));
         }
         return read;
@@ -676,9 +673,9 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitIntnum(NottscriptParser.IntnumContext ctx) {
         Ast.IntNum intNum = new Ast.IntNum();
-        NottscriptParser.AddSubOpContext starContext = ctx.addSubOp();
-        if(starContext!=null){
-            intNum.add(visit(starContext));
+        NottscriptParser.AddSubOpContext addSubOpContext = ctx.addSubOp();
+        if(addSubOpContext!=null){
+            intNum.add(visit(addSubOpContext));
         }
         NottscriptParser.NumAtomContext numAtomContext = ctx.numAtom();
         intNum.add(visit(numAtomContext));
