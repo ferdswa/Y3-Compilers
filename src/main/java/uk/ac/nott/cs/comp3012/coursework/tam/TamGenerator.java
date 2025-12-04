@@ -644,8 +644,8 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
     public TamInstruction visitWrite(Ast.Write ctx) {
         TamInstruction.InstructionList writeList = new TamInstruction.InstructionList();
         TamInstruction cExpr;
-        for (Ast ast : ctx) {
-            cExpr = visitExpr((Ast.Expr) ast);
+        for(int i=0;i<ctx.size();i++) {
+            cExpr = visitExpr((Ast.Expr) ctx.get(i));
             if(cExpr instanceof TamInstruction.InstructionList){
                 writeList.addAll((TamInstruction.InstructionList)cExpr);
             }
@@ -654,6 +654,7 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
             }
             cExpr = new TamInstruction.Instruction(TamOpcode.CALL, PB, 0, TamPrimitive.putint.value + 1);
             writeList.add((TamInstruction.Instruction) cExpr);
+            writeList.add(new TamInstruction.Instruction(TamOpcode.CALL, PB, 0, TamPrimitive.puteol.value + 1));
         }
         return writeList;
     }
