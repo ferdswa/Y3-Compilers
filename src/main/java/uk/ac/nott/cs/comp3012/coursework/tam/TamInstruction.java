@@ -13,12 +13,18 @@ public interface TamInstruction {
      */
     byte[] toByteArray();
 
+    int size();
 
     record Instruction(TamOpcode op, TamRegister r, int n, int d) implements TamInstruction {
 
         public byte[] toByteArray() {
             return new byte[]{(byte) ((op.value << 4) | r.value), (byte) n,
                     (byte) ((d & 0xff00) >>> 8), (byte) (d & 0xff),};
+        }
+
+        @Override
+        public int size() {
+            return 1;
         }
     }
 
@@ -39,6 +45,15 @@ public interface TamInstruction {
                 out.writeBytes(instr.toByteArray());
             }
             return out.toByteArray();
+        }
+
+        @Override
+        public int size() {
+            int size = 0;
+            for (Instruction instr : this) {
+                size += instr.size();
+            }
+            return size;
         }
     }
 

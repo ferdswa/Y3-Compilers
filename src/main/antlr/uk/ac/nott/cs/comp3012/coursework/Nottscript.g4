@@ -24,9 +24,9 @@ statement: nameAtom ASSIGN expr #baseAssign
            | IF LEFTBRACKET expr RIGHTBRACKET THEN statement+ END IF #ifBlock
            | IF LEFTBRACKET expr RIGHTBRACKET THEN statement+ elseStmt END IF #ifElse
            | IF LEFTBRACKET expr RIGHTBRACKET statement #ifStmt
-           | DO nameAtom ASSIGN doParam COMMA doParam COMMA doParam statement+ nodeAtom nodeAtom #doIncrN1
-           | DO nameAtom ASSIGN doParam COMMA doParam statement+ nodeAtom nodeAtom #doIncr1
-           | DO nodeAtom LEFTBRACKET expr RIGHTBRACKET statement+ nodeAtom nodeAtom #doWhile
+           | DO nameAtom ASSIGN doParam COMMA doParam COMMA doParam statement+ END DO #doIncrN1
+           | DO nameAtom ASSIGN doParam COMMA doParam statement+ END DO #doIncr1
+           | DO WHILE LEFTBRACKET expr RIGHTBRACKET statement+ END DO #doWhile
            | READ readParam (COMMA readParam)* #read
            | WRITE expr (COMMA expr)* #write
            | ALLOCATE nameAtom #allocPtr
@@ -73,28 +73,10 @@ intnum: addSubOp? numAtom;
 numAtom: USIGNINT;
 nameAtom: NAME;
 nodeAtom:
-         ALLOCATE
-       | BREAK
-       | CALL
-       | CHARACTER
-       | DEALLOCATE
-       | DO
-       | ELSE
-       | END
        | FUNCTION
-       | IF
-       | INTEGER
-       | LOGICAL
        | POINTER
        | PROGRAM
-       | READ
-       | REAL
-       | RESULT
-       | SUBROUTINE
-       | THEN
-       | TYPE
-       | WHILE
-       | WRITE;
+       | SUBROUTINE;
 //Lexer rules
 //Keywords
 EXIT: 'exit';

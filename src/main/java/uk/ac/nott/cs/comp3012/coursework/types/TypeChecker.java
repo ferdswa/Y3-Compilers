@@ -89,6 +89,9 @@ public class TypeChecker implements AstVisitor<Type> {
                 case Ast.IfStatement ifStmt -> {
                     visitIfStmt(ifStmt);
                 }
+                case Ast.DoWhile doWhile -> {
+                    visitDoWhile(doWhile);
+                }
                 default -> throw new UnsupportedOperationException("Statement type not supported :(");
             }
         }

@@ -11,6 +11,9 @@ import static uk.ac.nott.cs.comp3012.coursework.tam.TamRegister.*;
 
 public class TamGenerator implements AstVisitor<TamInstruction> {
     SymbolTable symbolTable;
+    int lastLogicVal;
+    int expValue = 0;
+    int expValue2 = 0;
     public TamGenerator(SymbolTable symbolTable) {
         this.symbolTable=symbolTable;
     }
@@ -50,6 +53,9 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                 }
                 case Ast.NormalAssign ignored -> {
                     visitBaseAssign(ignored);
+                }
+                case Ast.DoWhile doWhile -> {
+                    instructionList.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
                 }
                 default -> throw new IllegalStateException("Statement unsupported" + ctx.get(i));
             }
@@ -121,8 +127,22 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
     public TamInstruction visitBaseAssign(Ast.NormalAssign ctx) {
         String varName = ((Ast.Atom.nameAtom) ctx.getFirst()).name();
         if(symbolTable.getChildren().getFirst().getSymbols().containsKey(varName) && !symbolTable.getChildren().getFirst().getSymbols().get(varName).type.equals("unitID")){//Valid variable to assign to
-            visitExpr((Ast.Expr)ctx.getLast());//Load the expression's value into the expValue variable. Type checking has already been done, so this will work.
-            symbolTable.getChildren().getFirst().getSymbols().get(varName).value = String.valueOf(expValue);
+            switch (symbolTable.getChildren().getFirst().getSymbols().get(varName).type){
+                case "integer" ->{
+                    expValue = 0;
+                    visitExpr((Ast.Expr)ctx.getLast());
+                    symbolTable.getChildren().getFirst().getSymbols().get(varName).value = String.valueOf(expValue);
+                    expValue = 0;
+                }
+                case "logical" ->{
+                    lastLogicVal = 0;
+                    visitExpr((Ast.Expr)ctx.getLast());
+                    symbolTable.getChildren().getFirst().getSymbols().get(varName).value = String.valueOf(lastLogicVal);
+                }
+                default -> {
+                    throw new IllegalStateException("Unsupported type " + symbolTable.getChildren().getFirst().getSymbols().get(varName).type);
+                }
+            }
         }
         else//Assigning a non-existent variable. Should be caught by the typechecker, but if it's not it'll be stopped here
         {
@@ -182,6 +202,9 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                 case Ast.Atom.exitAtom exitAtom -> {
                     tInstrs.add((TamInstruction.Instruction)visitExitStmt(exitAtom));
                 }
+                case Ast.NormalAssign ignored -> {
+                    visitBaseAssign(ignored);
+                }
                 default -> throw new IllegalStateException("Statement unsupported" + ctx.get(i));
             }
         }
@@ -221,6 +244,9 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                 case Ast.Atom.exitAtom exitAtom -> {
                     tInstrs.add((TamInstruction.Instruction)visitExitStmt(exitAtom));
                 }
+                case Ast.NormalAssign ignored -> {
+                    visitBaseAssign(ignored);
+                }
                 default -> throw new IllegalStateException("Statement unsupported" + ctx.get(i).getClass().getSimpleName());
             }
         }
@@ -228,11 +254,9 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
         TamInstruction elseStmt = visitElseStmt((Ast.ElseStmt) ctx.getLast());
         switch(elseStmt){
             case TamInstruction.InstructionList lElseStmt ->{
-                System.out.println("Else recog");
                 fInstrs.addAll(lElseStmt);
             }
             case TamInstruction.Instruction sElseStmt ->{
-                System.out.println("Else recog");
                 fInstrs.add(sElseStmt);
             }
             default -> throw new IllegalStateException("Unexpected value: " + elseStmt);
@@ -274,6 +298,9 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
             case Ast.Atom.exitAtom exitAtom -> {
                 tInstrs.add((TamInstruction.Instruction)visitExitStmt(exitAtom));
             }
+            case Ast.NormalAssign ignored -> {
+                visitBaseAssign(ignored);
+            }
             default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
         }
         instructionList.add(new TamInstruction.Instruction(TamOpcode.JUMPIF, CP,0, tInstrs.size()));
@@ -301,6 +328,9 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                 case Ast.Atom.exitAtom exitAtom -> {
                     elseInstrs.add((TamInstruction.Instruction)visitExitStmt(exitAtom));
                 }
+                case Ast.NormalAssign ignored -> {
+                    visitBaseAssign(ignored);
+                }
                 default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
             }
         }
@@ -320,7 +350,289 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
 
     @Override
     public TamInstruction visitDoWhile(Ast.DoWhile ctx) {
-        return null;
+        TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
+        TamInstruction expr = visitExpr((Ast.Expr) ctx.getFirst());
+        if(expr instanceof TamInstruction.InstructionList) {
+            System.out.println(((TamInstruction.InstructionList) visitExpr((Ast.Expr) ctx.getFirst())).getLast());//first = op1, second = op2, third = operator
+            int r = ((TamInstruction.InstructionList) visitExpr((Ast.Expr) ctx.getFirst())).getFirst().d();
+            int l = ((TamInstruction.InstructionList) visitExpr((Ast.Expr) ctx.getFirst())).get(1).d();
+            int o = (((TamInstruction.InstructionList) visitExpr((Ast.Expr) ctx.getFirst())).getLast().d()) - 1;
+            //Revert c
+            TamPrimitive x = TamPrimitive.New;//wont be used as im not doing ptrs
+            switch (o) {
+                case 2 -> x = TamPrimitive.and;
+                case 3 -> x = TamPrimitive.or;
+                case 12 -> x = TamPrimitive.lt;
+                case 13 -> x = TamPrimitive.le;
+                case 14 -> x = TamPrimitive.ge;
+                case 15 -> x = TamPrimitive.gt;
+                case 16 -> x = TamPrimitive.eq;
+                case 17 -> x = TamPrimitive.ne;
+            }
+            switch (x) {
+                case gt -> {
+                    System.out.println("Greater");
+                    while (r > l) {
+                        for (int i = 1; i < ctx.size(); i++) {
+                            switch (ctx.get(i)) {
+                                case Ast.Write writeNode -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitWrite(writeNode));
+                                }
+                                case Ast.IfStatement ifStatement -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfStmt(ifStatement));
+                                }
+                                case Ast.IfBlock ifBlock -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfBlock(ifBlock));
+                                }
+                                case Ast.IfElseBlock ifElseBlock -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
+                                }
+                                case Ast.Atom.exitAtom exitAtom -> {
+                                    instructionList.add((TamInstruction.Instruction) visitExitStmt(exitAtom));
+                                }
+                                case Ast.NormalAssign normalAssign -> {
+                                    visitBaseAssign(normalAssign);
+                                }
+                                default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
+                            }
+                        }
+                        r = ((TamInstruction.InstructionList) visitExpr((Ast.Expr) ctx.getFirst())).getFirst().d();
+                    }
+                }
+                case lt -> {
+                    System.out.println("Lesser");
+                    while (r < l) {
+                        for (int i = 1; i < ctx.size(); i++) {
+                            switch (ctx.get(i)) {
+                                case Ast.Write writeNode -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitWrite(writeNode));
+                                }
+                                case Ast.IfStatement ifStatement -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfStmt(ifStatement));
+                                }
+                                case Ast.IfBlock ifBlock -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfBlock(ifBlock));
+                                }
+                                case Ast.IfElseBlock ifElseBlock -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
+                                }
+                                case Ast.Atom.exitAtom exitAtom -> {
+                                    instructionList.add((TamInstruction.Instruction) visitExitStmt(exitAtom));
+                                }
+                                case Ast.NormalAssign normalAssign -> {
+                                    visitBaseAssign(normalAssign);
+                                }
+                                default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
+                            }
+                        }
+                        r = ((TamInstruction.InstructionList) visitExpr((Ast.Expr) ctx.getFirst())).getFirst().d();
+                    }
+                }
+                case le -> {
+                    System.out.println("Lesser or Equals");
+                    while (r <= l) {
+                        for (int i = 1; i < ctx.size(); i++) {
+                            switch (ctx.get(i)) {
+                                case Ast.Write writeNode -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitWrite(writeNode));
+                                }
+                                case Ast.IfStatement ifStatement -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfStmt(ifStatement));
+                                }
+                                case Ast.IfBlock ifBlock -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfBlock(ifBlock));
+                                }
+                                case Ast.IfElseBlock ifElseBlock -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
+                                }
+                                case Ast.Atom.exitAtom exitAtom -> {
+                                    instructionList.add((TamInstruction.Instruction) visitExitStmt(exitAtom));
+                                }
+                                case Ast.NormalAssign normalAssign -> {
+                                    visitBaseAssign(normalAssign);
+                                }
+                                default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
+                            }
+                        }
+                        r = ((TamInstruction.InstructionList) visitExpr((Ast.Expr) ctx.getFirst())).getFirst().d();
+                    }
+                }
+                case ge -> {
+                    System.out.println("Greater or Equals");
+                    while (r >= l) {
+                        for (int i = 1; i < ctx.size(); i++) {
+                            switch (ctx.get(i)) {
+                                case Ast.Write writeNode -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitWrite(writeNode));
+                                }
+                                case Ast.IfStatement ifStatement -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfStmt(ifStatement));
+                                }
+                                case Ast.IfBlock ifBlock -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfBlock(ifBlock));
+                                }
+                                case Ast.IfElseBlock ifElseBlock -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
+                                }
+                                case Ast.Atom.exitAtom exitAtom -> {
+                                    instructionList.add((TamInstruction.Instruction) visitExitStmt(exitAtom));
+                                }
+                                case Ast.NormalAssign normalAssign -> {
+                                    visitBaseAssign(normalAssign);
+                                }
+                                default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
+                            }
+                        }
+                        r = ((TamInstruction.InstructionList) visitExpr((Ast.Expr) ctx.getFirst())).getFirst().d();
+                    }
+                }
+                case eq -> {
+                    System.out.println("Equals");
+                    while (r == l) {
+                        for (int i = 1; i < ctx.size(); i++) {
+                            switch (ctx.get(i)) {
+                                case Ast.Write writeNode -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitWrite(writeNode));
+                                }
+                                case Ast.IfStatement ifStatement -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfStmt(ifStatement));
+                                }
+                                case Ast.IfBlock ifBlock -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfBlock(ifBlock));
+                                }
+                                case Ast.IfElseBlock ifElseBlock -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
+                                }
+                                case Ast.Atom.exitAtom exitAtom -> {
+                                    instructionList.add((TamInstruction.Instruction) visitExitStmt(exitAtom));
+                                }
+                                case Ast.NormalAssign normalAssign -> {
+                                    visitBaseAssign(normalAssign);
+                                }
+                                default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
+                            }
+                        }
+                        r = ((TamInstruction.InstructionList) visitExpr((Ast.Expr) ctx.getFirst())).getFirst().d();
+                    }
+                }
+                case ne -> {
+                    System.out.println("Not Equals");
+                    while (r != l) {
+                        for (int i = 1; i < ctx.size(); i++) {
+                            switch (ctx.get(i)) {
+                                case Ast.Write writeNode -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitWrite(writeNode));
+                                }
+                                case Ast.IfStatement ifStatement -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfStmt(ifStatement));
+                                }
+                                case Ast.IfBlock ifBlock -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfBlock(ifBlock));
+                                }
+                                case Ast.IfElseBlock ifElseBlock -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
+                                }
+                                case Ast.Atom.exitAtom exitAtom -> {
+                                    instructionList.add((TamInstruction.Instruction) visitExitStmt(exitAtom));
+                                }
+                                case Ast.NormalAssign normalAssign -> {
+                                    visitBaseAssign(normalAssign);
+                                }
+                                default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
+                            }
+                        }
+                        r = ((TamInstruction.InstructionList) visitExpr((Ast.Expr) ctx.getFirst())).getFirst().d();
+                    }
+                }
+                case and -> {
+                    System.out.println("And");
+                    while ((r & l) > 0) {
+                        for (int i = 1; i < ctx.size(); i++) {
+                            switch (ctx.get(i)) {
+                                case Ast.Write writeNode -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitWrite(writeNode));
+                                }
+                                case Ast.IfStatement ifStatement -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfStmt(ifStatement));
+                                }
+                                case Ast.IfBlock ifBlock -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfBlock(ifBlock));
+                                }
+                                case Ast.IfElseBlock ifElseBlock -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
+                                }
+                                case Ast.Atom.exitAtom exitAtom -> {
+                                    instructionList.add((TamInstruction.Instruction) visitExitStmt(exitAtom));
+                                }
+                                case Ast.NormalAssign normalAssign -> {
+                                    visitBaseAssign(normalAssign);
+                                }
+                                default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
+                            }
+                        }
+                        r = ((TamInstruction.InstructionList) visitExpr((Ast.Expr) ctx.getFirst())).getFirst().d();
+                    }
+                }
+                case or -> {
+                    System.out.println("Or");
+                    while ((r | l) > 0) {
+                        for (int i = 1; i < ctx.size(); i++) {
+                            switch (ctx.get(i)) {
+                                case Ast.Write writeNode -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitWrite(writeNode));
+                                }
+                                case Ast.IfStatement ifStatement -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfStmt(ifStatement));
+                                }
+                                case Ast.IfBlock ifBlock -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfBlock(ifBlock));
+                                }
+                                case Ast.IfElseBlock ifElseBlock -> {
+                                    instructionList.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
+                                }
+                                case Ast.Atom.exitAtom exitAtom -> {
+                                    instructionList.add((TamInstruction.Instruction) visitExitStmt(exitAtom));
+                                }
+                                case Ast.NormalAssign normalAssign -> {
+                                    visitBaseAssign(normalAssign);
+                                }
+                                default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
+                            }
+                        }
+                        r = ((TamInstruction.InstructionList) visitExpr((Ast.Expr) ctx.getFirst())).getFirst().d();
+                    }
+                }
+            }
+        }else{
+            int r = ((TamInstruction.Instruction) visitExpr((Ast.Expr) ctx.getFirst())).d();
+            while(r>0){
+                for (int i = 1; i < ctx.size(); i++) {
+                    switch (ctx.get(i)) {
+                        case Ast.Write writeNode -> {
+                            instructionList.addAll((TamInstruction.InstructionList) visitWrite(writeNode));
+                        }
+                        case Ast.IfStatement ifStatement -> {
+                            instructionList.addAll((TamInstruction.InstructionList) visitIfStmt(ifStatement));
+                        }
+                        case Ast.IfBlock ifBlock -> {
+                            instructionList.addAll((TamInstruction.InstructionList) visitIfBlock(ifBlock));
+                        }
+                        case Ast.IfElseBlock ifElseBlock -> {
+                            instructionList.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
+                        }
+                        case Ast.Atom.exitAtom exitAtom -> {
+                            instructionList.add((TamInstruction.Instruction) visitExitStmt(exitAtom));
+                        }
+                        case Ast.NormalAssign normalAssign -> {
+                            visitBaseAssign(normalAssign);
+                        }
+                        default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
+                    }
+                }
+                r = ((TamInstruction.Instruction) visitExpr((Ast.Expr) ctx.getFirst())).d();
+            }
+        }
+        return instructionList;
     }
 
     @Override
@@ -580,8 +892,8 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                 return TamPrimitive.add.value + 1;
             }
             case "-"->{
-                System.out.println(expValue+" "+ expValue2);
                 expValue -= (2*expValue2);
+                System.out.println(expValue+" "+ expValue2);
                 return TamPrimitive.sub.value + 1;
             }
             default -> throw new IllegalStateException("Unknown logical operator");
@@ -644,8 +956,6 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
         }
     }
 
-    int expValue = 0;
-    int expValue2 = 0;
     @Override
     public TamInstruction visitPowExpr(Ast.PowExpr ctx) {
         TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
@@ -678,7 +988,6 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                 visitFieldAccExpr((Ast.FieldAccessExpr) ctx.getLast());
                 ans = expValue;
             }
-            System.out.println(ans);
             //Atp ans contains the final exponent
             if(ans>0){//positive
                 for(int i = 1; i < ans; i++){
@@ -754,10 +1063,10 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
             default -> throw new IllegalStateException("Unsupported expression" + ctx.getFirst());
         }
     }
-
     @Override
     public TamInstruction visitLogicSExpr(Ast.Atom.boolAtom ctx) {
         int v = (ctx.bool())? 1:0;
+        lastLogicVal = v;
         return new TamInstruction.Instruction(TamOpcode.LOADL, CB,0,v);
     }
 
@@ -870,7 +1179,6 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
         if(symbolTable.getChildren().getFirst().getSymbols().containsKey(ctx.name()) && !symbolTable.getChildren().getFirst().getSymbols().get(ctx.name()).type.equals("unitID")){//Valid variable to assign
             if(symbolTable.getChildren().getFirst().getSymbols().get(ctx.name()).type.equals("integer")) {
                 int value = Integer.parseInt(symbolTable.getChildren().getFirst().getSymbols().get(ctx.name()).value);
-                System.out.println(value);
                 expValue += value;
                 expValue2 = value;
                 return new TamInstruction.Instruction(TamOpcode.LOADL, CB, 0, value);

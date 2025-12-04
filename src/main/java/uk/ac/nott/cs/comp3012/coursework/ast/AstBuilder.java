@@ -343,8 +343,6 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitDoIncrN1(NottscriptParser.DoIncrN1Context ctx) {
         Ast.DoIncrNot1 doIncrNot1 = new Ast.DoIncrNot1();
-        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom(0);
-        doIncrNot1.add(visit(nodeAtom));
         for(NottscriptParser.DoParamContext doParamContext : ctx.doParam()){
             doIncrNot1.add(visit(doParamContext));
         }
@@ -356,8 +354,6 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitDoIncr1(NottscriptParser.DoIncr1Context ctx) {
         Ast.DoIncr1 doIncr1 = new Ast.DoIncr1();
-        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom(0);
-        doIncr1.add(visit(nodeAtom));
         for(NottscriptParser.DoParamContext doParamContext : ctx.doParam()){
             doIncr1.add(visit(doParamContext));
         }
@@ -369,8 +365,6 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
     @Override
     public Ast visitDoWhile(NottscriptParser.DoWhileContext ctx) {
         Ast.DoWhile doWhile = new Ast.DoWhile();
-        NottscriptParser.NodeAtomContext nodeAtom = ctx.nodeAtom(0);
-        doWhile.add(visit(nodeAtom));
         NottscriptParser.ExprContext expr = ctx.expr();
         doWhile.add(visit(expr));
         for(NottscriptParser.StatementContext statement : ctx.statement()){
