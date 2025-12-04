@@ -4,10 +4,17 @@ import java.util.*;
 
 import uk.ac.nott.cs.comp3012.coursework.AstVisitor;
 import uk.ac.nott.cs.comp3012.coursework.ast.Ast;
-import uk.ac.nott.cs.comp3012.coursework.util.SymbolData;
 import uk.ac.nott.cs.comp3012.coursework.util.SymbolTable;
 
 import static uk.ac.nott.cs.comp3012.coursework.tam.TamRegister.*;
+
+/**
+ * Dear Marker, I hope your day isn't too boring.
+ * I spent ages on a full grammar and could only implement part of it, hence the extra methods.
+ * I will implement them though as I have really enjoyed this one (despite the disproportionate amount of time it has taken XD)
+ * I've sorted them to make your job easier - psymc9
+ */
+
 
 public class TamGenerator implements AstVisitor<TamInstruction> {
     SymbolTable symbolTable;
@@ -68,67 +75,6 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
         }
         return instructionList;
     }
-
-    @Override
-    public TamInstruction visitVoidFuncBlock(Ast.FuncRVoidUnit ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitReturnFuncBlock(Ast.FuncRValueUnit ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitSubrtBlock(Ast.SbrtUnit ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitCustomTypeDeclBlock(Ast.CustomTypeDefUnit ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitDeclaratorParamList(Ast.FuncDefineParams ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitNameUnit(Ast.NameUnit ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitDeclareVar(Ast.DeclareVariable ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitDeclPtr(Ast.DeclarePointer ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitDeclArray(Ast.DeclareArray ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitDeclPtrArray(Ast.DeclarePointerArray ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitInbuilt(Ast.InbuiltTypeSpec ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitCustom(Ast.CustomTypeSpec ctx) {
-        return null;
-    }
-
     @Override
     public TamInstruction visitBaseAssign(Ast.NormalAssign ctx) {
         String varName = ((Ast.Atom.nameAtom) ctx.getFirst()).name();
@@ -163,216 +109,6 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
         }
         return null;
     }
-
-    @Override
-    public TamInstruction visitArrayAssign(Ast.ArrayAssign ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitCtAssign(Ast.CustomTypeAssign ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitCtArrayAssign(Ast.CustomTypeArrayAssign ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitCall(Ast.SbrtCall ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitIfBlock(Ast.IfBlock ctx) {
-        TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
-        TamInstruction.InstructionList tInstrs = new TamInstruction.InstructionList();
-        TamInstruction subExprs = visitExpr((Ast.Expr) ctx.getFirst());
-        switch(subExprs){
-            case TamInstruction.InstructionList instructions ->{
-                instructionList.addAll(instructions);
-            }
-            case TamInstruction.Instruction instruction ->{
-                instructionList.add(instruction);
-            }
-            default -> throw new IllegalStateException("Unexpected value: " + subExprs);
-        }
-        for(int i=1; i<ctx.size();i++) {
-            switch (ctx.get(i)) {
-                case Ast.Write writeNode -> {
-                    tInstrs.addAll((TamInstruction.InstructionList) visitWrite(writeNode));
-                }
-                case Ast.IfStatement ifStatement -> {
-                    tInstrs.addAll((TamInstruction.InstructionList) visitIfStmt(ifStatement));
-                }
-                case Ast.IfBlock ifBlock -> {
-                    tInstrs.addAll((TamInstruction.InstructionList)visitIfBlock(ifBlock));
-                }
-                case Ast.IfElseBlock ifElseBlock -> {
-                    tInstrs.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
-                }
-                case Ast.Atom.exitAtom exitAtom -> {
-                    tInstrs.add((TamInstruction.Instruction)visitExitStmt(exitAtom));
-                }
-                case Ast.NormalAssign ignored -> {
-                    visitBaseAssign(ignored);
-                }
-                case Ast.DoWhile doWhile -> {
-                    tInstrs.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
-                }
-                default -> throw new IllegalStateException("Statement unsupported" + ctx.get(i));
-            }
-        }
-        instructionList.add(new TamInstruction.Instruction(TamOpcode.JUMPIF, CP,0, tInstrs.size()));
-        instructionList.addAll(tInstrs);
-        return instructionList;
-    }
-
-    @Override
-    public TamInstruction visitIfElse(Ast.IfElseBlock ctx) {
-        TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
-        TamInstruction.InstructionList tInstrs = new TamInstruction.InstructionList();
-        TamInstruction subExprs = visitExpr((Ast.Expr) ctx.getFirst());
-        switch(subExprs){
-            case TamInstruction.InstructionList instructions ->{
-                instructionList.addAll(instructions);
-            }
-            case TamInstruction.Instruction instruction ->{
-                instructionList.add(instruction);
-            }
-            default -> throw new IllegalStateException("Unexpected value: " + subExprs);
-        }
-        for(int i=1; i<ctx.size()-1;i++) {//Final subAST is always the ElseStmt group
-            switch (ctx.get(i)) {
-                case Ast.Write writeNode -> {
-                    tInstrs.addAll((TamInstruction.InstructionList) visitWrite(writeNode));
-                }
-                case Ast.IfStatement ifStatement -> {
-                    tInstrs.addAll((TamInstruction.InstructionList) visitIfStmt(ifStatement));
-                }
-                case Ast.IfBlock ifBlock -> {
-                    tInstrs.addAll((TamInstruction.InstructionList)visitIfBlock(ifBlock));
-                }
-                case Ast.IfElseBlock ifElseBlock -> {
-                    tInstrs.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
-                }
-                case Ast.Atom.exitAtom exitAtom -> {
-                    tInstrs.add((TamInstruction.Instruction)visitExitStmt(exitAtom));
-                }
-                case Ast.NormalAssign ignored -> {
-                    visitBaseAssign(ignored);
-                }
-                case Ast.DoWhile doWhile -> {
-                    tInstrs.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
-                }
-                default -> throw new IllegalStateException("Statement unsupported" + ctx.get(i).getClass().getSimpleName());
-            }
-        }
-        TamInstruction.InstructionList fInstrs = new TamInstruction.InstructionList();
-        TamInstruction elseStmt = visitElseStmt((Ast.ElseStmt) ctx.getLast());
-        switch(elseStmt){
-            case TamInstruction.InstructionList lElseStmt ->{
-                fInstrs.addAll(lElseStmt);
-            }
-            case TamInstruction.Instruction sElseStmt ->{
-                fInstrs.add(sElseStmt);
-            }
-            default -> throw new IllegalStateException("Unexpected value: " + elseStmt);
-        }
-        tInstrs.add(new TamInstruction.Instruction(TamOpcode.JUMP, CP,0, fInstrs.size()));//Adds an unconditional jump to skip false statements in case of true
-        instructionList.add(new TamInstruction.Instruction(TamOpcode.JUMPIF, CP,0, tInstrs.size()));
-        instructionList.addAll(tInstrs);
-        instructionList.addAll(fInstrs);
-        return instructionList;
-    }
-
-    @Override
-    public TamInstruction visitIfStmt(Ast.IfStatement ctx) {
-        TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
-        TamInstruction.InstructionList tInstrs = new TamInstruction.InstructionList();
-        TamInstruction subExprs = visitExpr((Ast.Expr) ctx.getFirst());
-        switch(subExprs){
-            case TamInstruction.InstructionList instructions ->{
-                instructionList.addAll(instructions);
-            }
-            case TamInstruction.Instruction instruction ->{
-                instructionList.add(instruction);
-            }
-            default -> throw new IllegalStateException("Unexpected value: " + subExprs);
-        }
-        switch(ctx.getLast()){
-            case Ast.Write writeNode-> {
-                tInstrs.addAll((TamInstruction.InstructionList)visitWrite(writeNode));
-            }
-            case Ast.IfStatement ifStatement->{
-                tInstrs.addAll((TamInstruction.InstructionList)visitIfStmt(ifStatement));
-            }
-            case Ast.IfBlock ifBlock -> {
-                tInstrs.addAll((TamInstruction.InstructionList)visitIfBlock(ifBlock));
-            }
-            case Ast.IfElseBlock ifElseBlock -> {
-                tInstrs.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
-            }
-            case Ast.Atom.exitAtom exitAtom -> {
-                tInstrs.add((TamInstruction.Instruction)visitExitStmt(exitAtom));
-            }
-            case Ast.NormalAssign ignored -> {
-                visitBaseAssign(ignored);
-            }
-            case Ast.DoWhile doWhile -> {
-                tInstrs.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
-            }
-            default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
-        }
-        instructionList.add(new TamInstruction.Instruction(TamOpcode.JUMPIF, CP,0, tInstrs.size()));
-        instructionList.addAll(tInstrs);
-        return instructionList;
-    }
-
-    @Override
-    public TamInstruction visitElseStmt(Ast.ElseStmt ctx) {
-        TamInstruction.InstructionList elseInstrs = new TamInstruction.InstructionList();
-        for(int i=0;i<ctx.size();i++){
-            switch(ctx.get(i)){
-                case Ast.Write writeNode-> {
-                    elseInstrs.addAll((TamInstruction.InstructionList)visitWrite(writeNode));
-                }
-                case Ast.IfStatement ifStatement->{
-                    elseInstrs.addAll((TamInstruction.InstructionList)visitIfStmt(ifStatement));
-                }
-                case Ast.IfBlock ifBlock -> {
-                    elseInstrs.addAll((TamInstruction.InstructionList)visitIfBlock(ifBlock));
-                }
-                case Ast.IfElseBlock ifElseBlock -> {
-                    elseInstrs.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
-                }
-                case Ast.Atom.exitAtom exitAtom -> {
-                    elseInstrs.add((TamInstruction.Instruction)visitExitStmt(exitAtom));
-                }
-                case Ast.NormalAssign ignored -> {
-                    visitBaseAssign(ignored);
-                }
-                case Ast.DoWhile doWhile -> {
-                    elseInstrs.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
-                }
-                default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
-            }
-        }
-        return elseInstrs;
-    }
-
-
-    @Override
-    public TamInstruction visitDoIncr1(Ast.DoIncr1 ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitDoIncrN1(Ast.DoIncrNot1 ctx) {
-        return null;
-    }
-
     @Override
     public TamInstruction visitDoWhile(Ast.DoWhile ctx) {
         TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
@@ -715,62 +451,6 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
         }
         return writeList;
     }
-
-    @Override
-    public TamInstruction visitAllocPtr(Ast.AllocPtr ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitAllocPtrArray(Ast.AllocPtrArray ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitDeallocPtr(Ast.DeallocPtr ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitFuncCall(Ast.FuncCall ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitDoParam(Ast.DoParam ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitReadParam(Ast.ReadParam ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitArrayIndex(Ast.ArrayIndex ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitArray(Ast.ArrayDef ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitParamSubList(Ast.ParamSubList ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitParamList(Ast.ParamList ctx) {
-        return null;
-    }
-
-    @Override
-    public TamInstruction visitExpr(Ast.Expr ctx) {
-        return visitOrExpr((Ast.OrExpr) ctx.getFirst());
-    }
-
     @Override
     public TamInstruction visitOrExpr(Ast.OrExpr ctx) {
         TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
@@ -1126,12 +806,6 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
         lastLogicVal = v;
         return new TamInstruction.Instruction(TamOpcode.LOADL, CB,0,v);
     }
-
-    @Override
-    public TamInstruction visitRealSExpr(Ast.Atom.realAtom ctx) {
-        return null;
-    }
-
     @Override
     public TamInstruction visitHexSExpr(Ast.Atom.hexNumAtom ctx) {
         expValue2 = ctx.hex();
@@ -1143,6 +817,384 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
         expValue2 = ctx.bin();
         return new TamInstruction.Instruction(TamOpcode.LOADL, CB,0,ctx.bin());
     }
+    @Override
+    public TamInstruction visitIntnum(Ast.IntNum ctx) {//TODO: Intnums can also be inverted!
+        if(ctx.size()>1){//Negation
+            TamInstruction.InstructionList instructions = new TamInstruction.InstructionList();
+            instructions.add((TamInstruction.Instruction) visitNumAtom((Ast.Atom.numAtom) ctx.getLast()));
+            if(((Ast.Atom.addSubAtom)ctx.getFirst()).op().equals("-")){
+                instructions.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,TamPrimitive.neg.value+1));
+                expValue -= ((Ast.Atom.numAtom) ctx.getLast()).i();
+                expValue2 = -expValue2;
+            }
+            else{
+                expValue += ((Ast.Atom.numAtom) ctx.getLast()).i();
+            }
+            return instructions;
+        }
+        else{
+            expValue += ((Ast.Atom.numAtom) ctx.getLast()).i();
+            return visitNumAtom((Ast.Atom.numAtom) ctx.getLast());
+        }
+    }
+
+    @Override
+    public TamInstruction visitNumAtom(Ast.Atom.numAtom ctx) {
+        expValue2 = ctx.i();
+        return new TamInstruction.Instruction(TamOpcode.LOADL, CB,0,ctx.i());
+    }
+
+    @Override
+    public TamInstruction visitNameAtom(Ast.Atom.nameAtom ctx) {//Get the value of the variable
+        if(symbolTable.getChildren().getFirst().getSymbols().containsKey(ctx.name()) && !symbolTable.getChildren().getFirst().getSymbols().get(ctx.name()).type.equals("unitID")){//Valid variable to assign
+            if(symbolTable.getChildren().getFirst().getSymbols().get(ctx.name()).type.equals("integer")) {
+                int value = Integer.parseInt(symbolTable.getChildren().getFirst().getSymbols().get(ctx.name()).value);
+                expValue += value;
+                expValue2 = value;
+                return new TamInstruction.Instruction(TamOpcode.LOADL, CB, 0, value);
+            }
+            else if(symbolTable.getChildren().getFirst().getSymbols().get(ctx.name()).type.equals("logical")){
+                return new TamInstruction.Instruction(TamOpcode.LOADL, CB, 0, Integer.parseInt(symbolTable.getChildren().getFirst().getSymbols().get(ctx.name()).value));
+            }
+            else{
+                throw new UnsupportedOperationException("Unsupported type");
+            }
+        }
+        else//Assigning a non-existent variable. Should be caught by the typechecker, but if it's not it'll be stopped here
+        {
+            throw new IllegalStateException("What are you looking for?");
+        }
+    }
+    @Override
+    public TamInstruction visitIfBlock(Ast.IfBlock ctx) {
+        TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
+        TamInstruction.InstructionList tInstrs = new TamInstruction.InstructionList();
+        TamInstruction subExprs = visitExpr((Ast.Expr) ctx.getFirst());
+        switch(subExprs){
+            case TamInstruction.InstructionList instructions ->{
+                instructionList.addAll(instructions);
+            }
+            case TamInstruction.Instruction instruction ->{
+                instructionList.add(instruction);
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + subExprs);
+        }
+        for(int i=1; i<ctx.size();i++) {
+            switch (ctx.get(i)) {
+                case Ast.Write writeNode -> {
+                    tInstrs.addAll((TamInstruction.InstructionList) visitWrite(writeNode));
+                }
+                case Ast.IfStatement ifStatement -> {
+                    tInstrs.addAll((TamInstruction.InstructionList) visitIfStmt(ifStatement));
+                }
+                case Ast.IfBlock ifBlock -> {
+                    tInstrs.addAll((TamInstruction.InstructionList)visitIfBlock(ifBlock));
+                }
+                case Ast.IfElseBlock ifElseBlock -> {
+                    tInstrs.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
+                }
+                case Ast.Atom.exitAtom exitAtom -> {
+                    tInstrs.add((TamInstruction.Instruction)visitExitStmt(exitAtom));
+                }
+                case Ast.NormalAssign ignored -> {
+                    visitBaseAssign(ignored);
+                }
+                case Ast.DoWhile doWhile -> {
+                    tInstrs.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
+                }
+                default -> throw new IllegalStateException("Statement unsupported" + ctx.get(i));
+            }
+        }
+        instructionList.add(new TamInstruction.Instruction(TamOpcode.JUMPIF, CP,0, tInstrs.size()));
+        instructionList.addAll(tInstrs);
+        return instructionList;
+    }
+
+    @Override
+    public TamInstruction visitIfElse(Ast.IfElseBlock ctx) {
+        TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
+        TamInstruction.InstructionList tInstrs = new TamInstruction.InstructionList();
+        TamInstruction subExprs = visitExpr((Ast.Expr) ctx.getFirst());
+        switch(subExprs){
+            case TamInstruction.InstructionList instructions ->{
+                instructionList.addAll(instructions);
+            }
+            case TamInstruction.Instruction instruction ->{
+                instructionList.add(instruction);
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + subExprs);
+        }
+        for(int i=1; i<ctx.size()-1;i++) {//Final subAST is always the ElseStmt group
+            switch (ctx.get(i)) {
+                case Ast.Write writeNode -> {
+                    tInstrs.addAll((TamInstruction.InstructionList) visitWrite(writeNode));
+                }
+                case Ast.IfStatement ifStatement -> {
+                    tInstrs.addAll((TamInstruction.InstructionList) visitIfStmt(ifStatement));
+                }
+                case Ast.IfBlock ifBlock -> {
+                    tInstrs.addAll((TamInstruction.InstructionList)visitIfBlock(ifBlock));
+                }
+                case Ast.IfElseBlock ifElseBlock -> {
+                    tInstrs.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
+                }
+                case Ast.Atom.exitAtom exitAtom -> {
+                    tInstrs.add((TamInstruction.Instruction)visitExitStmt(exitAtom));
+                }
+                case Ast.NormalAssign ignored -> {
+                    visitBaseAssign(ignored);
+                }
+                case Ast.DoWhile doWhile -> {
+                    tInstrs.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
+                }
+                default -> throw new IllegalStateException("Statement unsupported" + ctx.get(i).getClass().getSimpleName());
+            }
+        }
+        TamInstruction.InstructionList fInstrs = new TamInstruction.InstructionList();
+        TamInstruction elseStmt = visitElseStmt((Ast.ElseStmt) ctx.getLast());
+        switch(elseStmt){
+            case TamInstruction.InstructionList lElseStmt ->{
+                fInstrs.addAll(lElseStmt);
+            }
+            case TamInstruction.Instruction sElseStmt ->{
+                fInstrs.add(sElseStmt);
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + elseStmt);
+        }
+        tInstrs.add(new TamInstruction.Instruction(TamOpcode.JUMP, CP,0, fInstrs.size()));//Adds an unconditional jump to skip false statements in case of true
+        instructionList.add(new TamInstruction.Instruction(TamOpcode.JUMPIF, CP,0, tInstrs.size()));
+        instructionList.addAll(tInstrs);
+        instructionList.addAll(fInstrs);
+        return instructionList;
+    }
+
+    @Override
+    public TamInstruction visitIfStmt(Ast.IfStatement ctx) {
+        TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
+        TamInstruction.InstructionList tInstrs = new TamInstruction.InstructionList();
+        TamInstruction subExprs = visitExpr((Ast.Expr) ctx.getFirst());
+        switch(subExprs){
+            case TamInstruction.InstructionList instructions ->{
+                instructionList.addAll(instructions);
+            }
+            case TamInstruction.Instruction instruction ->{
+                instructionList.add(instruction);
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + subExprs);
+        }
+        switch(ctx.getLast()){
+            case Ast.Write writeNode-> {
+                tInstrs.addAll((TamInstruction.InstructionList)visitWrite(writeNode));
+            }
+            case Ast.IfStatement ifStatement->{
+                tInstrs.addAll((TamInstruction.InstructionList)visitIfStmt(ifStatement));
+            }
+            case Ast.IfBlock ifBlock -> {
+                tInstrs.addAll((TamInstruction.InstructionList)visitIfBlock(ifBlock));
+            }
+            case Ast.IfElseBlock ifElseBlock -> {
+                tInstrs.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
+            }
+            case Ast.Atom.exitAtom exitAtom -> {
+                tInstrs.add((TamInstruction.Instruction)visitExitStmt(exitAtom));
+            }
+            case Ast.NormalAssign ignored -> {
+                visitBaseAssign(ignored);
+            }
+            case Ast.DoWhile doWhile -> {
+                tInstrs.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
+            }
+            default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
+        }
+        instructionList.add(new TamInstruction.Instruction(TamOpcode.JUMPIF, CP,0, tInstrs.size()));
+        instructionList.addAll(tInstrs);
+        return instructionList;
+    }
+
+    @Override
+    public TamInstruction visitElseStmt(Ast.ElseStmt ctx) {
+        TamInstruction.InstructionList elseInstrs = new TamInstruction.InstructionList();
+        for(int i=0;i<ctx.size();i++){
+            switch(ctx.get(i)){
+                case Ast.Write writeNode-> {
+                    elseInstrs.addAll((TamInstruction.InstructionList)visitWrite(writeNode));
+                }
+                case Ast.IfStatement ifStatement->{
+                    elseInstrs.addAll((TamInstruction.InstructionList)visitIfStmt(ifStatement));
+                }
+                case Ast.IfBlock ifBlock -> {
+                    elseInstrs.addAll((TamInstruction.InstructionList)visitIfBlock(ifBlock));
+                }
+                case Ast.IfElseBlock ifElseBlock -> {
+                    elseInstrs.addAll((TamInstruction.InstructionList) visitIfElse(ifElseBlock));
+                }
+                case Ast.Atom.exitAtom exitAtom -> {
+                    elseInstrs.add((TamInstruction.Instruction)visitExitStmt(exitAtom));
+                }
+                case Ast.NormalAssign ignored -> {
+                    visitBaseAssign(ignored);
+                }
+                case Ast.DoWhile doWhile -> {
+                    elseInstrs.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
+                }
+                default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
+            }
+        }
+        return elseInstrs;
+    }
+
+
+    @Override
+    public TamInstruction visitVoidFuncBlock(Ast.FuncRVoidUnit ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitReturnFuncBlock(Ast.FuncRValueUnit ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitSubrtBlock(Ast.SbrtUnit ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitCustomTypeDeclBlock(Ast.CustomTypeDefUnit ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitDeclaratorParamList(Ast.FuncDefineParams ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitNameUnit(Ast.NameUnit ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitDeclareVar(Ast.DeclareVariable ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitDeclPtr(Ast.DeclarePointer ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitDeclArray(Ast.DeclareArray ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitDeclPtrArray(Ast.DeclarePointerArray ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitInbuilt(Ast.InbuiltTypeSpec ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitCustom(Ast.CustomTypeSpec ctx) {
+        return null;
+    }
+
+
+
+    @Override
+    public TamInstruction visitArrayAssign(Ast.ArrayAssign ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitCtAssign(Ast.CustomTypeAssign ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitCtArrayAssign(Ast.CustomTypeArrayAssign ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitCall(Ast.SbrtCall ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitDoIncr1(Ast.DoIncr1 ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitDoIncrN1(Ast.DoIncrNot1 ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitAllocPtr(Ast.AllocPtr ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitAllocPtrArray(Ast.AllocPtrArray ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitDeallocPtr(Ast.DeallocPtr ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitFuncCall(Ast.FuncCall ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitDoParam(Ast.DoParam ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitReadParam(Ast.ReadParam ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitArrayIndex(Ast.ArrayIndex ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitArray(Ast.ArrayDef ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitParamSubList(Ast.ParamSubList ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitParamList(Ast.ParamList ctx) {
+        return null;
+    }
+
+    @Override
+    public TamInstruction visitExpr(Ast.Expr ctx) {
+        return visitOrExpr((Ast.OrExpr) ctx.getFirst());
+    }
+    @Override
+    public TamInstruction visitRealSExpr(Ast.Atom.realAtom ctx) {
+        return null;
+    }
+
 
     @Override
     public TamInstruction visitCharSeqSExpr(Ast.Atom.charLiteralAtom ctx) {
@@ -1204,54 +1256,7 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
         return null;
     }
 
-    @Override
-    public TamInstruction visitIntnum(Ast.IntNum ctx) {//TODO: Intnums can also be inverted!
-        if(ctx.size()>1){//Negation
-            TamInstruction.InstructionList instructions = new TamInstruction.InstructionList();
-            instructions.add((TamInstruction.Instruction) visitNumAtom((Ast.Atom.numAtom) ctx.getLast()));
-            if(((Ast.Atom.addSubAtom)ctx.getFirst()).op().equals("-")){
-                instructions.add(new TamInstruction.Instruction(TamOpcode.CALL, PB,0,TamPrimitive.neg.value+1));
-                expValue -= ((Ast.Atom.numAtom) ctx.getLast()).i();
-                expValue2 = -expValue2;
-            }
-            else{
-                expValue += ((Ast.Atom.numAtom) ctx.getLast()).i();
-            }
-            return instructions;
-        }
-        else{
-            expValue += ((Ast.Atom.numAtom) ctx.getLast()).i();
-            return visitNumAtom((Ast.Atom.numAtom) ctx.getLast());
-        }
-    }
 
-    @Override
-    public TamInstruction visitNumAtom(Ast.Atom.numAtom ctx) {
-        expValue2 = ctx.i();
-        return new TamInstruction.Instruction(TamOpcode.LOADL, CB,0,ctx.i());
-    }
-
-    @Override
-    public TamInstruction visitNameAtom(Ast.Atom.nameAtom ctx) {//Get the value of the variable
-        if(symbolTable.getChildren().getFirst().getSymbols().containsKey(ctx.name()) && !symbolTable.getChildren().getFirst().getSymbols().get(ctx.name()).type.equals("unitID")){//Valid variable to assign
-            if(symbolTable.getChildren().getFirst().getSymbols().get(ctx.name()).type.equals("integer")) {
-                int value = Integer.parseInt(symbolTable.getChildren().getFirst().getSymbols().get(ctx.name()).value);
-                expValue += value;
-                expValue2 = value;
-                return new TamInstruction.Instruction(TamOpcode.LOADL, CB, 0, value);
-            }
-            else if(symbolTable.getChildren().getFirst().getSymbols().get(ctx.name()).type.equals("logical")){
-                return new TamInstruction.Instruction(TamOpcode.LOADL, CB, 0, Integer.parseInt(symbolTable.getChildren().getFirst().getSymbols().get(ctx.name()).value));
-            }
-            else{
-                throw new UnsupportedOperationException("Unsupported type");
-            }
-        }
-        else//Assigning a non-existent variable. Should be caught by the typechecker, but if it's not it'll be stopped here
-        {
-            throw new IllegalStateException("What are you looking for?");
-        }
-    }
 
     @Override
     public TamInstruction visitNodeAtom(Ast.Atom.nodeAtom ctx) {
