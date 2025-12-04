@@ -395,7 +395,8 @@ public class TypeChecker implements AstVisitor<Type> {
     @Override
     public Type visitRead(Ast.Read ctx) {
         for(Ast ctx1: ctx){//Run through the list of read parameters, if nothing is thrown then OK
-            visitReadParam((Ast.ReadParam) ctx1);
+            //visitReadParam((Ast.ReadParam) ctx1); will be used when i return when i've more time
+            visitNameAtom((Ast.Atom.nameAtom) ctx1);
         }
         return Type.BaseType.OK;
     }

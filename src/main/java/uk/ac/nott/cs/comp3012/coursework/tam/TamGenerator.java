@@ -14,8 +14,11 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
     int lastLogicVal;
     int expValue = 0;
     int expValue2 = 0;
-    public TamGenerator(SymbolTable symbolTable) {
+    int rdc = 0;
+    String[] params;
+    public TamGenerator(SymbolTable symbolTable, String[] params) {
         this.symbolTable=symbolTable;
+        this.params=params;
     }
     public SymbolTable getSymbolTable() {
         return symbolTable;
@@ -56,6 +59,9 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                 }
                 case Ast.DoWhile doWhile -> {
                     instructionList.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
+                }
+                case Ast.Read ignored -> {
+                    visitRead(ignored);
                 }
                 default -> throw new IllegalStateException("Statement unsupported" + ctx.get(i));
             }
@@ -353,7 +359,6 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
         TamInstruction.InstructionList instructionList = new TamInstruction.InstructionList();
         TamInstruction expr = visitExpr((Ast.Expr) ctx.getFirst());
         if(expr instanceof TamInstruction.InstructionList) {
-            System.out.println(((TamInstruction.InstructionList) visitExpr((Ast.Expr) ctx.getFirst())).getLast());//first = op1, second = op2, third = operator
             int r = ((TamInstruction.InstructionList) visitExpr((Ast.Expr) ctx.getFirst())).getFirst().d();
             int l = ((TamInstruction.InstructionList) visitExpr((Ast.Expr) ctx.getFirst())).get(1).d();
             int o = (((TamInstruction.InstructionList) visitExpr((Ast.Expr) ctx.getFirst())).getLast().d()) - 1;
@@ -371,7 +376,6 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
             }
             switch (x) {
                 case gt -> {
-                    System.out.println("Greater");
                     while (r > l) {
                         for (int i = 1; i < ctx.size(); i++) {
                             switch (ctx.get(i)) {
@@ -400,7 +404,6 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                     }
                 }
                 case lt -> {
-                    System.out.println("Lesser");
                     while (r < l) {
                         for (int i = 1; i < ctx.size(); i++) {
                             switch (ctx.get(i)) {
@@ -429,7 +432,6 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                     }
                 }
                 case le -> {
-                    System.out.println("Lesser or Equals");
                     while (r <= l) {
                         for (int i = 1; i < ctx.size(); i++) {
                             switch (ctx.get(i)) {
@@ -458,7 +460,6 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                     }
                 }
                 case ge -> {
-                    System.out.println("Greater or Equals");
                     while (r >= l) {
                         for (int i = 1; i < ctx.size(); i++) {
                             switch (ctx.get(i)) {
@@ -487,7 +488,6 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                     }
                 }
                 case eq -> {
-                    System.out.println("Equals");
                     while (r == l) {
                         for (int i = 1; i < ctx.size(); i++) {
                             switch (ctx.get(i)) {
@@ -516,7 +516,6 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                     }
                 }
                 case ne -> {
-                    System.out.println("Not Equals");
                     while (r != l) {
                         for (int i = 1; i < ctx.size(); i++) {
                             switch (ctx.get(i)) {
@@ -545,7 +544,6 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                     }
                 }
                 case and -> {
-                    System.out.println("And");
                     while ((r & l) > 0) {
                         for (int i = 1; i < ctx.size(); i++) {
                             switch (ctx.get(i)) {
@@ -574,7 +572,6 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                     }
                 }
                 case or -> {
-                    System.out.println("Or");
                     while ((r | l) > 0) {
                         for (int i = 1; i < ctx.size(); i++) {
                             switch (ctx.get(i)) {
@@ -637,6 +634,33 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
 
     @Override
     public TamInstruction visitRead(Ast.Read ctx) {
+        for( Ast nameAtom : ctx){
+            if(nameAtom instanceof Ast.Atom.nameAtom){
+                if(Objects.equals(symbolTable.getChildren().getFirst().getSymbols().get(((Ast.Atom.nameAtom) nameAtom).name()).type, "integer")) {
+                    symbolTable.getChildren().getFirst().getSymbols().get(((Ast.Atom.nameAtom) nameAtom).name()).value = params[rdc];
+                    System.out.println(symbolTable.getChildren().getFirst().getSymbols().get(((Ast.Atom.nameAtom) nameAtom).name()).value);
+                    rdc++;
+                }
+                else if(Objects.equals(symbolTable.getChildren().getFirst().getSymbols().get(((Ast.Atom.nameAtom) nameAtom).name()).type, "logical")){
+                    int i = Integer.parseInt(params[rdc]);
+                    if(i > 0){
+                        //true
+                        symbolTable.getChildren().getFirst().getSymbols().get(((Ast.Atom.nameAtom) nameAtom).name()).value = String.valueOf(1);
+                    }
+                    else{
+                        //false
+                        symbolTable.getChildren().getFirst().getSymbols().get(((Ast.Atom.nameAtom) nameAtom).name()).value = String.valueOf(0);
+                    }
+                    System.out.println(symbolTable.getChildren().getFirst().getSymbols().get(((Ast.Atom.nameAtom) nameAtom).name()).value);
+                    rdc++;
+                }
+                else{
+                    throw new IllegalStateException("*ys");
+                }
+            }
+            else
+                throw new IllegalStateException("Statement unsupported" + ctx.getLast());
+        }
         return null;
     }
 
@@ -894,7 +918,6 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
             }
             case "-"->{
                 expValue -= (2*expValue2);
-                System.out.println(expValue+" "+ expValue2);
                 return TamPrimitive.sub.value + 1;
             }
             default -> throw new IllegalStateException("Unknown logical operator");

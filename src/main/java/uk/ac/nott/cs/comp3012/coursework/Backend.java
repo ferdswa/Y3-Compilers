@@ -6,8 +6,8 @@ import uk.ac.nott.cs.comp3012.coursework.tam.TamInstruction;
 import uk.ac.nott.cs.comp3012.coursework.util.SymbolTable;
 
 public class Backend {
-    public byte[] runBackend(Ast program, SymbolTable symbols){
-        TamGenerator tamGenerator = new TamGenerator(symbols);
+    public byte[] runBackend(Ast program, SymbolTable symbols, String[] params) {
+        TamGenerator tamGenerator = new TamGenerator(symbols, params);
         TamInstruction.InstructionList instructionList = (TamInstruction.InstructionList) tamGenerator.visitProgram((Ast.Units) program);
         System.out.println(instructionList.toString());
         System.out.println(tamGenerator.getSymbolTable().getChildren().getFirst().getSymbols());

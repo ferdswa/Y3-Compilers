@@ -372,23 +372,24 @@ public class AstBuilder extends NottscriptBaseVisitor<Ast>
         }
         return doWhile;
     }
-    @Override
-    public Ast visitReadParam(NottscriptParser.ReadParamContext ctx) {
-        Ast.ReadParam readParam = new Ast.ReadParam();
-        NottscriptParser.NameAtomContext name =  ctx.nameAtom();
-        if(name!=null){
-            readParam.add(visit(name));
-        }
-        else{
-            NottscriptParser.ArrayContext array = ctx.array();
-            readParam.add(visit(array));
-        }
-        return readParam;
-    }
+    //With more time (due in jan for example) arrays could've been implemented...
+//    @Override
+//    public Ast visitReadParam(NottscriptParser.ReadParamContext ctx) {
+//        Ast.ReadParam readParam = new Ast.ReadParam();
+//        NottscriptParser.NameAtomContext name =  ctx.nameAtom();
+//        if(name!=null){
+//            readParam.add(visit(name));
+//        }
+//        else{
+//            NottscriptParser.ArrayContext array = ctx.array();
+//            readParam.add(visit(array));
+//        }
+//        return readParam;
+//    }
     @Override
     public Ast visitRead(NottscriptParser.ReadContext ctx) {
         Ast.Read read = new Ast.Read();
-        for(NottscriptParser.ReadParamContext readParamContext : ctx.readParam()){
+        for(NottscriptParser.NameAtomContext readParamContext : ctx.nameAtom()){
             read.add(visit(readParamContext));
         }
         return read;

@@ -27,7 +27,7 @@ statement: nameAtom ASSIGN expr #baseAssign
            | DO nameAtom ASSIGN doParam COMMA doParam COMMA doParam statement+ END DO #doIncrN1
            | DO nameAtom ASSIGN doParam COMMA doParam statement+ END DO #doIncr1
            | DO WHILE LEFTBRACKET expr RIGHTBRACKET statement+ END DO #doWhile
-           | READ readParam (COMMA readParam)* #read
+           | READ nameAtom (COMMA nameAtom)* #read
            | WRITE expr (COMMA expr)* #write
            | ALLOCATE nameAtom #allocPtr
            | ALLOCATE nameAtom COMMA arrayIndex #allocPtrArray
@@ -36,7 +36,6 @@ statement: nameAtom ASSIGN expr #baseAssign
            | EXIT #exitStmt;
 elseStmt: ELSE statement+;//Done
 doParam: (intnum|nameAtom);//Done
-readParam: (nameAtom|array);//Done
 arrayIndex: (numAtom|nameAtom);//Done
 array: nameAtom LEFTBRACKET arrayIndex (COMMA arrayIndex)* RIGHTBRACKET;
 paramSubList: (nameAtom|expr);
