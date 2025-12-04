@@ -142,7 +142,14 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                 }
                 case "logical" ->{
                     lastLogicVal = 0;
+                    expValue = 0;
                     visitExpr((Ast.Expr)ctx.getLast());
+                    if(expValue > 0){
+                        lastLogicVal = 1;
+                    }
+                    else{
+                        lastLogicVal = 0;
+                    }
                     symbolTable.getChildren().getFirst().getSymbols().get(varName).value = String.valueOf(lastLogicVal);
                 }
                 default -> {
@@ -211,6 +218,9 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                 case Ast.NormalAssign ignored -> {
                     visitBaseAssign(ignored);
                 }
+                case Ast.DoWhile doWhile -> {
+                    tInstrs.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
+                }
                 default -> throw new IllegalStateException("Statement unsupported" + ctx.get(i));
             }
         }
@@ -252,6 +262,9 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                 }
                 case Ast.NormalAssign ignored -> {
                     visitBaseAssign(ignored);
+                }
+                case Ast.DoWhile doWhile -> {
+                    tInstrs.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
                 }
                 default -> throw new IllegalStateException("Statement unsupported" + ctx.get(i).getClass().getSimpleName());
             }
@@ -307,6 +320,9 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
             case Ast.NormalAssign ignored -> {
                 visitBaseAssign(ignored);
             }
+            case Ast.DoWhile doWhile -> {
+                tInstrs.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
+            }
             default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
         }
         instructionList.add(new TamInstruction.Instruction(TamOpcode.JUMPIF, CP,0, tInstrs.size()));
@@ -336,6 +352,9 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                 }
                 case Ast.NormalAssign ignored -> {
                     visitBaseAssign(ignored);
+                }
+                case Ast.DoWhile doWhile -> {
+                    elseInstrs.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
                 }
                 default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
             }
@@ -394,8 +413,11 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                                 case Ast.Atom.exitAtom exitAtom -> {
                                     instructionList.add((TamInstruction.Instruction) visitExitStmt(exitAtom));
                                 }
-                                case Ast.NormalAssign normalAssign -> {
-                                    visitBaseAssign(normalAssign);
+                                case Ast.NormalAssign ignored -> {
+                                    visitBaseAssign(ignored);
+                                }
+                                case Ast.DoWhile doWhile -> {
+                                    instructionList.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
                                 }
                                 default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
                             }
@@ -422,8 +444,11 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                                 case Ast.Atom.exitAtom exitAtom -> {
                                     instructionList.add((TamInstruction.Instruction) visitExitStmt(exitAtom));
                                 }
-                                case Ast.NormalAssign normalAssign -> {
-                                    visitBaseAssign(normalAssign);
+                                case Ast.NormalAssign ignored -> {
+                                    visitBaseAssign(ignored);
+                                }
+                                case Ast.DoWhile doWhile -> {
+                                    instructionList.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
                                 }
                                 default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
                             }
@@ -450,8 +475,11 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                                 case Ast.Atom.exitAtom exitAtom -> {
                                     instructionList.add((TamInstruction.Instruction) visitExitStmt(exitAtom));
                                 }
-                                case Ast.NormalAssign normalAssign -> {
-                                    visitBaseAssign(normalAssign);
+                                case Ast.NormalAssign ignored -> {
+                                    visitBaseAssign(ignored);
+                                }
+                                case Ast.DoWhile doWhile -> {
+                                    instructionList.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
                                 }
                                 default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
                             }
@@ -478,8 +506,11 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                                 case Ast.Atom.exitAtom exitAtom -> {
                                     instructionList.add((TamInstruction.Instruction) visitExitStmt(exitAtom));
                                 }
-                                case Ast.NormalAssign normalAssign -> {
-                                    visitBaseAssign(normalAssign);
+                                case Ast.NormalAssign ignored -> {
+                                    visitBaseAssign(ignored);
+                                }
+                                case Ast.DoWhile doWhile -> {
+                                    instructionList.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
                                 }
                                 default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
                             }
@@ -506,8 +537,11 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                                 case Ast.Atom.exitAtom exitAtom -> {
                                     instructionList.add((TamInstruction.Instruction) visitExitStmt(exitAtom));
                                 }
-                                case Ast.NormalAssign normalAssign -> {
-                                    visitBaseAssign(normalAssign);
+                                case Ast.NormalAssign ignored -> {
+                                    visitBaseAssign(ignored);
+                                }
+                                case Ast.DoWhile doWhile -> {
+                                    instructionList.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
                                 }
                                 default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
                             }
@@ -534,8 +568,11 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                                 case Ast.Atom.exitAtom exitAtom -> {
                                     instructionList.add((TamInstruction.Instruction) visitExitStmt(exitAtom));
                                 }
-                                case Ast.NormalAssign normalAssign -> {
-                                    visitBaseAssign(normalAssign);
+                                case Ast.NormalAssign ignored -> {
+                                    visitBaseAssign(ignored);
+                                }
+                                case Ast.DoWhile doWhile -> {
+                                    instructionList.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
                                 }
                                 default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
                             }
@@ -562,8 +599,11 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                                 case Ast.Atom.exitAtom exitAtom -> {
                                     instructionList.add((TamInstruction.Instruction) visitExitStmt(exitAtom));
                                 }
-                                case Ast.NormalAssign normalAssign -> {
-                                    visitBaseAssign(normalAssign);
+                                case Ast.NormalAssign ignored -> {
+                                    visitBaseAssign(ignored);
+                                }
+                                case Ast.DoWhile doWhile -> {
+                                    instructionList.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
                                 }
                                 default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
                             }
@@ -590,8 +630,11 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                                 case Ast.Atom.exitAtom exitAtom -> {
                                     instructionList.add((TamInstruction.Instruction) visitExitStmt(exitAtom));
                                 }
-                                case Ast.NormalAssign normalAssign -> {
-                                    visitBaseAssign(normalAssign);
+                                case Ast.NormalAssign ignored -> {
+                                    visitBaseAssign(ignored);
+                                }
+                                case Ast.DoWhile doWhile -> {
+                                    instructionList.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
                                 }
                                 default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
                             }
@@ -620,8 +663,11 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
                         case Ast.Atom.exitAtom exitAtom -> {
                             instructionList.add((TamInstruction.Instruction) visitExitStmt(exitAtom));
                         }
-                        case Ast.NormalAssign normalAssign -> {
-                            visitBaseAssign(normalAssign);
+                        case Ast.NormalAssign ignored -> {
+                            visitBaseAssign(ignored);
+                        }
+                        case Ast.DoWhile doWhile -> {
+                            instructionList.addAll((TamInstruction.InstructionList)visitDoWhile(doWhile));
                         }
                         default -> throw new IllegalStateException("Statement unsupported" + ctx.getLast());
                     }
@@ -638,19 +684,6 @@ public class TamGenerator implements AstVisitor<TamInstruction> {
             if(nameAtom instanceof Ast.Atom.nameAtom){
                 if(Objects.equals(symbolTable.getChildren().getFirst().getSymbols().get(((Ast.Atom.nameAtom) nameAtom).name()).type, "integer")) {
                     symbolTable.getChildren().getFirst().getSymbols().get(((Ast.Atom.nameAtom) nameAtom).name()).value = params[rdc];
-                    System.out.println(symbolTable.getChildren().getFirst().getSymbols().get(((Ast.Atom.nameAtom) nameAtom).name()).value);
-                    rdc++;
-                }
-                else if(Objects.equals(symbolTable.getChildren().getFirst().getSymbols().get(((Ast.Atom.nameAtom) nameAtom).name()).type, "logical")){
-                    int i = Integer.parseInt(params[rdc]);
-                    if(i > 0){
-                        //true
-                        symbolTable.getChildren().getFirst().getSymbols().get(((Ast.Atom.nameAtom) nameAtom).name()).value = String.valueOf(1);
-                    }
-                    else{
-                        //false
-                        symbolTable.getChildren().getFirst().getSymbols().get(((Ast.Atom.nameAtom) nameAtom).name()).value = String.valueOf(0);
-                    }
                     System.out.println(symbolTable.getChildren().getFirst().getSymbols().get(((Ast.Atom.nameAtom) nameAtom).name()).value);
                     rdc++;
                 }

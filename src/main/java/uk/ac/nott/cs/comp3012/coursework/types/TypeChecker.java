@@ -163,6 +163,7 @@ public class TypeChecker implements AstVisitor<Type> {
         HashSet<Type> set = new HashSet<>();
         set.add(visitNameAtom((Ast.Atom.nameAtom) ctx.getFirst()));
         set.add(visitExpr((Ast.Expr) ctx.getLast()));
+        System.out.println(set.toString());
         if(set.size()==1){
             return Type.BaseType.OK;
         }
@@ -491,7 +492,23 @@ public class TypeChecker implements AstVisitor<Type> {
 
     @Override
     public Type visitExpr(Ast.Expr ctx) {
-        return visitOrExpr((Ast.OrExpr)ctx.getFirst());
+        HashSet<Type> types = new HashSet<>();
+        if(ctx.size() > 1){
+            for(Ast expr: ctx) {
+                if (expr instanceof Ast.OrExpr) {//Find types of RelExprs's sub exprs. Ignore the ops for now as they aren't relevant for typechecking
+                    types.add(visitOrExpr((Ast.OrExpr) expr));
+                }
+            }
+            if(types.size()==1){//Ensure we're comparing exprs of equal type, then return that this evaluates to a logical value
+                return Type.BaseType.Logical;
+            }
+            else {
+                throw new UnsupportedOperationException("INVALID EXPRESSION, MUST COMPARE SAME TYPES");
+            }
+        }
+        else{//Not a logical expression. Continue.
+            return visitOrExpr((Ast.OrExpr)ctx.getFirst());
+        }
     }
 
     @Override
